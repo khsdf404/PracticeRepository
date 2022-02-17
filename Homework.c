@@ -10,38 +10,48 @@ void PrintMenu() {
     printf("7. Выйти.\n");
 }
 void StepBack() {
-    char stepBack; 
+    int stepBack; 
     printf("\nВведите 1 чтобы вернуться\n");  
     while (1) { 
-        scanf("%s", &stepBack);  
-        if (stepBack == '1')
-            break; 
+        scanf("%d", &stepBack);  
+        if (stepBack == 1)
+            return; 
     } 
 }
 
 
-void DynamicPrintArray(int* mas, int* dynamicSize) {
+void DynamicPrintArray(int* mas, int* dynamicSize) { 
     printf("Массив: \n[ "); 
     for (int i = 0; i < *dynamicSize; i++) {
-        printf("%d", *(mas + i));
+        printf("%d", *(mas+i));
         if (i + 1 != *dynamicSize)
             printf(", ");
     }
     printf(" ]\n");
 } 
-
+void DynamicPushBack(int* mas, int* dynamicSize) {
+    printf("Введите значение\n"); 
+    int newValue;
+    *dynamicSize = *dynamicSize + 1; 
+    int* tmpmas = (int*)realloc(mas, (*dynamicSize) * sizeof(int));
+    mas = tmpmas; 
+    scanf("%d", &newValue);
+    *(mas+*dynamicSize-1) = newValue; 
+    system("cls");
+    DynamicPrintArray(mas, dynamicSize);
+}
 
 
 
 void DynamicMenu(int* mas, int* dynamicSize) {
-    system("cls");
+    system("cls");  
     PrintMenu();
     char option;
     scanf("%s", &option); 
     system("cls"); 
     switch (option) {
         case('1'): {
-            // DynamicPushBack(mas, dynamicSize);
+            DynamicPushBack(mas, dynamicSize);
             break;
         }
         case('2'): {
@@ -57,7 +67,7 @@ void DynamicMenu(int* mas, int* dynamicSize) {
             return;
         }
         default: {
-            DynamicMenu(mas, dynamicSize);
+            // DynamicMenu(mas, dynamicSize);
             return;
         }
     }
@@ -72,9 +82,12 @@ int main() {
 
 
     int *dynamicList;
-    dynamicList = (int*)malloc(5 * sizeof(int));
-    int dynamicSize = 5;  
-    DynamicMenu(&dynamicList[0], &dynamicSize); 
+    dynamicList = (int*)malloc(1 * sizeof(int));
+    dynamicList[0] = 11;
+    int dynamicSize = 1;  
+    printf("%d \n", dynamicList);
+    printf("%d \n\n", &dynamicList[0]);
+    DynamicMenu(dynamicList, &dynamicSize);
 
 
 	system("pause");
