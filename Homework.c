@@ -34,9 +34,7 @@ void DynamicPrintArray(int* mas, int* dynamicSize) {
 void DynamicPushBack(int* mas, int* dynamicSize) {
     printf("¬ведите значение\n"); 
     int newValue;
-    *dynamicSize = *dynamicSize + 1;
-    int* tmpmas = (int*)realloc(mas, (1) * sizeof(int));
-    mas = tmpmas; 
+    *dynamicSize = *dynamicSize + 1; 
     scanf("%d", &newValue);
     *(mas+*dynamicSize-1) = newValue;
 }
@@ -45,9 +43,7 @@ void DynamicChangeArray(int* mas, int* dynamicSize) {
     while (newLen < 0 || newLen > 21) {
         printf("¬ведите длину массива [0, 20]\n");
         scanf("%d", &newLen); 
-    } 
-    int* tmp = (int*)realloc(mas, sizeof(int) * (2));
-    mas = tmp; 
+    }  
     for (int i = 0; i < newLen; i++) {
         int value;
         // system("cls");
@@ -89,9 +85,7 @@ void DynamicDeleteByIndex(int* mas, int* dynamicSize) {
     } 
     for (int k = index; k < *dynamicSize; k++)  
         *(mas + k) = *(mas + k + 1); 
-    *dynamicSize = *dynamicSize - 1;
-    int* tmpmas = (int*)realloc(mas, (1) * sizeof(int));
-    mas = tmpmas;
+    *dynamicSize = *dynamicSize - 1; 
     // DynamicPrintArray(mas, dynamicSize);
 }
 
