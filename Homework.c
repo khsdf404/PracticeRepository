@@ -36,9 +36,7 @@ void DynamicPushBack(int* mas, int* dynamicSize) {
     int* tmpmas = (int*)realloc(mas, (*dynamicSize) * sizeof(int));
     mas = tmpmas; 
     scanf("%d", &newValue);
-    *(mas+*dynamicSize-1) = newValue; 
-    system("cls");
-    DynamicPrintArray(mas, dynamicSize);
+    *(mas+*dynamicSize-1) = newValue;
 }
 
 
@@ -82,11 +80,8 @@ int main() {
 
 
     int *dynamicList;
-    dynamicList = (int*)malloc(1 * sizeof(int));
-    dynamicList[0] = 11;
-    int dynamicSize = 1;  
-    printf("%d \n", dynamicList);
-    printf("%d \n\n", &dynamicList[0]);
+    dynamicList = (int*)malloc(0 * sizeof(int));
+    int dynamicSize = 0;   
     DynamicMenu(dynamicList, &dynamicSize);
 
 
