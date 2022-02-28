@@ -26,9 +26,9 @@ void PrintMenu() {
     printf("\n");
     printf("  1. Вставить элемент в конец массива\n");
     printf("  2. Перезаписать массив полностью.\n");
-    printf("  3. Вывести массив на экран.\n");
-    printf("  4. Удалить элемент по значению.\n");
-    printf("  5. Удалить элемент по индексу.\n");
+    printf("  3. Вывести массив на экран.\n"); 
+    printf("  4. Удалить элемент по индексу.\n");
+    printf("  5. Удалить элемент по значению.\n");
     printf("  6. Выйти.\n");
     printf("\n  ");
 }
@@ -115,7 +115,7 @@ void ChangeArray(ArrayPtr arr_s) {
 }
 
 void RemoveByValue(ArrayPtr arr_s) {
-    int value; 
+    int value;
     PrintArray(arr_s);
     printf("\n  Введите значение, элементы с которым хотите удалить: ");
     while (ScanInt(&value) == 0) {
@@ -134,21 +134,21 @@ void RemoveByValue(ArrayPtr arr_s) {
     ReallocArray(arr_s);
     PrintArray(arr_s);
 }
-/*
-void DynamicDeleteByIndex(int* mas, int* dynamicSize) {
+void RemoveByIndex(ArrayPtr arr_s) {
+    PrintArray(arr_s);
     int index = -1;  
-    while (index < 0 || index >= *dynamicSize) {
-        DynamicPrintArray(mas, dynamicSize);
-        printf("Введите индекс, по которому удялятся элементы массива: \n");
-        scanf("%d", &index);
-    } 
-    for (int k = index; k < *dynamicSize; k++)  
-        *(mas + k) = *(mas + k + 1); 
-    *dynamicSize = *dynamicSize - 1; 
-    // DynamicPrintArray(mas, dynamicSize);
-}
-
-*/
+    int indexCorrect = index >= 0 && arr_s->size > index;
+    printf("  Введите индекс, по которому удалится элемент массива: ");
+    while (ScanInt(&index) == 0 && indexCorrect) {
+        system("cls");
+        printf("  Введите индекс, по которому удалится элемент массива: ");
+    };
+    for (int k = index; k < arr_s->size; k++)
+        *(arr_s->ptr + k) = *(arr_s->ptr + k + 1);
+    arr_s->size--;
+    ReallocArray(arr_s);
+    PrintArray(arr_s);
+} 
 
 void DynamicMenu(ArrayPtr arr_s) {
     system("cls");  
@@ -170,13 +170,13 @@ void DynamicMenu(ArrayPtr arr_s) {
             break;
         } 
         case('4'): {
-            RemoveByValue(arr_s);
+            RemoveByIndex(arr_s);
             break;
         }
         case('5'): {
-            // DynamicDeleteByIndex(mas, dynamicSize);
+            RemoveByValue(arr_s);
             break;
-        }
+        } 
         case('6'): {
             // exit
             return;
