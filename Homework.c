@@ -7,6 +7,7 @@ typedef struct Array {
     arr_p ptr;
     int size;
 } Array;
+typedef Array* ArrayPtr;
 
 void PrintMenu() {
     printf("1. Вставить элемент в конец массива\n");
@@ -34,32 +35,34 @@ Array CreateArray(int len) {
     for (int i = 0; i < len; i++) *(dynamicArr + i) = 0;
     return thisArr;
 }
-void ReallocArray(Array arr_s) {
-    int* tmp_ptr = (int*)realloc(arr_s.ptr, arr_s.size * sizeof(int));
-    if (tmp_ptr != NULL) arr_s.ptr = tmp_ptr;
+void ReallocArray(ArrayPtr arr_s) {
+    int* tmp_ptr = (int*)realloc(arr_s -> ptr, arr_s-> size * sizeof(int));
+    if (tmp_ptr != NULL) arr_s -> ptr = tmp_ptr;
 }
-void DeleteArray(Array arr_s) {
-    free(arr_s.ptr);
+void DeleteArray(ArrayPtr arr_s) {
+    free(arr_s);
 }
 
-/*
-void PrintArray(struct Arr arr_s) {
-    printf("Массив: [ \n\t"); 
-    for (int i = 0; i < arr_s.size; i++) {
-        printf("%d", *(arr_s.ptr + i));
-        if (i + 1 != arr_s.size)
+
+void PrintArray(ArrayPtr arr_s) {
+    printf("Массив: [ %d\n\t", arr_s -> size);
+    for (int i = 0; i < arr_s->size; i++) {
+        printf("%d", *(arr_s->ptr + i));
+        if (i + 1 != arr_s->size)
             printf(", ");
     }
     printf(" ];\n");
 } 
-void DynamicPushBack(struct Arr arr_s) {
+void PushBack(ArrayPtr arr_s) {
     printf("Введите значение\n"); 
     int newValue;
-    arr_s.size++;
+    arr_s->size = arr_s->size + 1;
     scanf("%d", &newValue);
     ReallocArray(arr_s);
-    *(arr_s.ptr + arr_s.size - 1) = newValue;
+    *(arr_s->ptr + arr_s->size - 1) = newValue;
+    printf("%d\n", arr_s->size);
 }
+/*
 void DynamicChangeArray(int* mas, int* dynamicSize) {
     int newLen = -1; 
     while (newLen < 0 || newLen > 21) {
@@ -113,7 +116,7 @@ void DynamicDeleteByIndex(int* mas, int* dynamicSize) {
 
 */
 
-void DynamicMenu(Array arr_s) {
+void DynamicMenu(ArrayPtr arr_s) {
     system("cls");  
     PrintMenu();
     char option;
@@ -121,7 +124,7 @@ void DynamicMenu(Array arr_s) {
     system("cls"); 
     switch (option) {
         case('1'): {
-            // DynamicPushBack(arr_s);
+            PushBack(arr_s);
             break;
         }
         case('2'): {
@@ -129,15 +132,7 @@ void DynamicMenu(Array arr_s) {
             break;
         }
         case('3'): {
-            // DynamicPrintArray(arr_s);
-            printf("\n");
-            int stepBack;
-            printf("\nВведите 1 чтобы вернуться\n");
-            while (1) {
-                scanf("%d", &stepBack);
-                if (stepBack == 1)
-                    break;
-            }
+            PrintArray(arr_s); 
             break;
         } 
         case('4'): {
@@ -157,24 +152,29 @@ void DynamicMenu(Array arr_s) {
             return;
         }
     } 
+    printf("\n");
+    system("pause");
     DynamicMenu(arr_s);
 }
 
 
 
 
-
+void a(ArrayPtr arr_s) {
+    arr_s -> size = 5;
+}
 
 int main() {
     system("chcp 1251");
     system("cls");
 
-    Array arr_s = CreateArray(3);
+    Array arr_s = CreateArray(0); 
+    a(&arr_s);
 
-    for (int i = 0; i < arr_s.size; i++)
-        printf("%d\n", * (arr_s.ptr + i)); 
+    printf("%d\n", arr_s.size);
+
      
-    DynamicMenu(arr_s);
+    // DynamicMenu(&arr_s);
 
 
 	system("pause");
