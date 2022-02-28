@@ -27,6 +27,9 @@ void StepBack() {
     } 
 }
 
+
+
+
 Array CreateArray(int len) {
     Array thisArr;
     int* dynamicArr = (int*)malloc(len * sizeof(int));
@@ -45,7 +48,7 @@ void DeleteArray(ArrayPtr arr_s) {
 
 
 void PrintArray(ArrayPtr arr_s) {
-    printf("Массив: [ %d\n\t", arr_s -> size);
+    printf("Массив: [ ");
     for (int i = 0; i < arr_s->size; i++) {
         printf("%d", *(arr_s->ptr + i));
         if (i + 1 != arr_s->size)
@@ -54,13 +57,13 @@ void PrintArray(ArrayPtr arr_s) {
     printf(" ];\n");
 } 
 void PushBack(ArrayPtr arr_s) {
-    printf("Введите значение\n"); 
+    arr_s->size++;
+    ReallocArray(arr_s); 
     int newValue;
-    arr_s->size = arr_s->size + 1;
-    scanf("%d", &newValue);
-    ReallocArray(arr_s);
-    *(arr_s->ptr + arr_s->size - 1) = newValue;
-    printf("%d\n", arr_s->size);
+    printf("Введите значение\n");
+     
+     
+    *(arr_s->ptr + arr_s->size - 1) = newValue; 
 }
 /*
 void DynamicChangeArray(int* mas, int* dynamicSize) {
@@ -157,25 +160,36 @@ void DynamicMenu(ArrayPtr arr_s) {
     DynamicMenu(arr_s);
 }
 
+ 
 
-
-
-void a(ArrayPtr arr_s) {
-    arr_s -> size = 5;
+// FoolProof func
+int ScanInt(int* valuePtr) {
+    int scanCount = scanf("%d", valuePtr); 
+    if (scanCount) return 1;
+    while (getc(stdin) != '\n') { 
+        return 0;
+        scanCount = scanf("%d", valuePtr); 
+    }
+    return 0;
 }
+
+
+
 
 int main() {
     system("chcp 1251");
-    system("cls");
-
-    Array arr_s = CreateArray(0); 
-    a(&arr_s);
-
-    printf("%d\n", arr_s.size);
-
-     
-    // DynamicMenu(&arr_s);
-
+    system("cls"); 
+    
+    Array arr_s = CreateArray(0);
+    int currh, value;
+    
+    printf("enter:\n");
+    while (ScanInt(&value) == 0) {
+        system("cls");
+        printf("enter:\n");
+    };
+    
+    // DynamicMenu(&arr_s); 
 
 	system("pause");
 	return 0;
