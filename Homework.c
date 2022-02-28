@@ -22,12 +22,12 @@ int ScanInt(int* valuePtr) {
 }
 
 void PrintMenu() {
-    printf("1. Вставить элемент в конец массива\n");
-    printf("2. Перезаписать массив полностью.\n");
-    printf("3. Вывести массив на экран.\n");
-    printf("4. Удалить элемент по значению.\n");
-    printf("5. Удалить элемент по индексу.\n");
-    printf("6. Выйти.\n");
+    printf("\n  1. Вставить элемент в конец массива\n");
+    printf("  2. Перезаписать массив полностью.\n");
+    printf("  3. Вывести массив на экран.\n");
+    printf("  4. Удалить элемент по значению.\n");
+    printf("  5. Удалить элемент по индексу.\n");
+    printf("  6. Выйти.\n\n  ");
 }
 void StepBack() {
     printf("\n");
@@ -55,7 +55,7 @@ void DeleteArray(ArrayPtr arr_s) {
 
 
 void PrintArray(ArrayPtr arr_s) {
-    printf("Массив: [ ");
+    printf("\n  Массив: [ ");
     for (int i = 0; i < arr_s->size; i++) {
         printf("%d", *(arr_s->ptr + i));
         if (i + 1 != arr_s->size)
@@ -67,10 +67,10 @@ void PushBack(ArrayPtr arr_s) {
     arr_s->size++;
     ReallocArray(arr_s); 
     int newValue;
-    printf("Введите значение\n"); 
+    printf("\n  Введите значение: "); 
     while (ScanInt(&newValue) == 0) {
         system("cls");
-        printf("Введите значение\n");
+        printf("\n  Введите значение: ");
     }; 
     *(arr_s->ptr + arr_s->size - 1) = newValue; 
 }
@@ -178,14 +178,6 @@ int main() {
     system("cls"); 
     
     Array arr_s = CreateArray(0);
-    /*
-    int currh, value; 
-    printf("enter:\n");
-    while (ScanInt(&value) == 0) {
-        system("cls");
-        printf("enter:\n");
-    };*/
-    
     DynamicMenu(&arr_s); 
 
 	system("pause");
