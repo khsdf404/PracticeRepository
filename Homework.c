@@ -11,7 +11,7 @@ typedef Array* ArrayPtr;
 
 
 // FoolProof func
-int ScanInt(int* valuePtr) {
+int  ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
     while (getc(stdin) != '\n') {
@@ -78,7 +78,7 @@ void PushBack(ArrayPtr arr_s) {
     *(arr_s->ptr + arr_s->size - 1) = newValue; 
 }
 
-int GetNewSize() {
+int  GetNewSize() {
     int newSize = -1; 
     printf("\n  ¬ведите длину массива: ");
     while (ScanInt(&newSize) == 0 || newSize < 0) {
@@ -113,22 +113,36 @@ void ChangeArray(ArrayPtr arr_s) {
     PrintArrayPart(arr_s, 0, newSize); 
     PrintArray(arr_s);
 }
-/*
-void DynamicDeleteByValue(int* mas, int* dynamicSize) {
-    int value;
-    printf("¬ведите значение, по которому уд€л€тс€ элементы массива: \n");
-    scanf("%d", &value); 
-    for (int i = 0; i < *dynamicSize; i++) { 
-        if (*(mas + i) == value) {
-            for (int k = i; k < *dynamicSize; k++) {
-                *(mas + k) = *(mas + k + 1);
-            }
+
+void RemoveByValue(ArrayPtr arr_s) {
+    int value; 
+    PrintArray(arr_s);
+    printf("\n  ¬ведите значение, элементы с которым хотите удалить: ");
+    while (ScanInt(&value) == 0) {
+        system("cls");
+        printf("\n  ¬ведите значение, элементы с которым хотите удалить: ");
+    }; 
+    /*int offset = 0;
+    for (int i = 0; i < arr_s->size; i++) {
+        *(arr_s->ptr + i) = *(arr_s->ptr + i + offset);
+        if (*(arr_s->ptr + i) == value) {
+            offset++;
             i--;
-            *dynamicSize = *dynamicSize - 1;
+            arr_s->size--;
+        }
+    }*/ 
+    for (int i = 0; i < arr_s->size; i++) {
+        if (*(arr_s->ptr + i) == value) {
+            for (int k = i; k < arr_s->size; k++)
+                *(arr_s->ptr + k) = *(arr_s->ptr + k + 1); 
+            i--;
+            arr_s->size--;
         }
     } 
-    // DynamicPrintArray(mas, dynamicSize);
+    ReallocArray(arr_s);
+    PrintArray(arr_s);
 }
+/*
 void DynamicDeleteByIndex(int* mas, int* dynamicSize) {
     int index = -1;  
     while (index < 0 || index >= *dynamicSize) {
@@ -164,7 +178,7 @@ void DynamicMenu(ArrayPtr arr_s) {
             break;
         } 
         case('4'): {
-            // DynamicDeleteByValue(mas, dynamicSize);
+            RemoveByValue(arr_s);
             break;
         }
         case('5'): {
