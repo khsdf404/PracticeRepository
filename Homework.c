@@ -134,13 +134,13 @@ void RemoveByValue(ArrayPtr arr_s) {
     ReallocArray(arr_s);
     PrintArray(arr_s);
 }
-void RemoveByIndex(ArrayPtr arr_s) {
+void RemoveByIndex(ArrayPtr arr_s) { 
+    int index;
     PrintArray(arr_s);
-    int index = -1;  
-    int indexCorrect = index >= 0 && arr_s->size > index;
     printf("  ¬ведите индекс, по которому удалитс€ элемент массива: ");
-    while (ScanInt(&index) == 0 && indexCorrect) {
+    while (ScanInt(&index) == 0 || !(index >= 0 && arr_s->size > index)) { 
         system("cls");
+        PrintArray(arr_s);
         printf("  ¬ведите индекс, по которому удалитс€ элемент массива: ");
     };
     for (int k = index; k < arr_s->size; k++)
