@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <time.h>
  
 typedef int* arr_p; 
 typedef struct Array {
@@ -10,7 +11,24 @@ typedef struct Array {
 typedef Array* ArrayPtr;
 
 
-// FoolProof func
+// Dynamic's array funcs
+Array CreateArray(int len) {
+    Array thisArr;
+    int* dynamicArr = (int*)malloc(len * sizeof(int));
+    thisArr.ptr = dynamicArr;
+    thisArr.size = len;
+    for (int i = 0; i < len; i++) *(dynamicArr + i) = 0;
+    return thisArr;
+}
+void ReallocArray(ArrayPtr arr_s) {
+    int* tmp_ptr = (int*)realloc(arr_s->ptr, arr_s->size * sizeof(int));
+    if (tmp_ptr != NULL) arr_s->ptr = tmp_ptr;
+}
+void DeleteArray(ArrayPtr arr_s) {
+    free(arr_s);
+}
+
+// FoolProof get int func
 int  ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
@@ -22,38 +40,7 @@ int  ScanInt(int* valuePtr) {
 }
 
 
-void PrintMenu() {
-    printf("\n");
-    printf("  1. Вставить элемент в конец массива\n");
-    printf("  2. Перезаписать массив полностью.\n");
-    printf("  3. Вывести массив на экран.\n"); 
-    printf("  4. Удалить элемент по индексу.\n");
-    printf("  5. Удалить элемент по значению.\n");
-    printf("  6. Выйти.\n");
-    printf("\n  ");
-}
-void StepBack() {
-    printf("\n");
-    system("pause");
-}
-
-
-Array CreateArray(int len) {
-    Array thisArr;
-    int* dynamicArr = (int*)malloc(len * sizeof(int));
-    thisArr.ptr = dynamicArr;
-    thisArr.size = len;
-    for (int i = 0; i < len; i++) *(dynamicArr + i) = 0;
-    return thisArr;
-}
-void ReallocArray(ArrayPtr arr_s) {
-    int* tmp_ptr = (int*)realloc(arr_s -> ptr, arr_s-> size * sizeof(int));
-    if (tmp_ptr != NULL) arr_s -> ptr = tmp_ptr;
-}
-void DeleteArray(ArrayPtr arr_s) {
-    free(arr_s);
-}
-
+// 4.
 void PrintArrayPart(ArrayPtr arr_s, int start, int end) {
     for (int k = start; k < end; k++) {
         printf("%d", *(arr_s->ptr + k));
@@ -66,6 +53,7 @@ void PrintArray(ArrayPtr arr_s) {
     PrintArrayPart(arr_s, 0, arr_s->size);
     printf(" ];\n");
 } 
+// 1.
 void PushBack(ArrayPtr arr_s) {
     arr_s->size++;
     ReallocArray(arr_s); 
@@ -76,8 +64,9 @@ void PushBack(ArrayPtr arr_s) {
         printf("\n  Введите значение: ");
     }; 
     *(arr_s->ptr + arr_s->size - 1) = newValue; 
+    PrintArray(arr_s);
 }
-
+// 2.
 int  GetNewSize() {
     int newSize = -1; 
     printf("\n  Введите длину массива: ");
@@ -113,7 +102,24 @@ void ChangeArray(ArrayPtr arr_s) {
     PrintArrayPart(arr_s, 0, newSize); 
     PrintArray(arr_s);
 }
+// 3.
+int  GetRandomValue(int edge, int chance) {
+    int negativeChance = rand() % 100;
+    int rndValue = rand() % edge;
+    if (negativeChance >= chance)
+        rndValue *= -1; 
+    return rndValue;
+}
+void RandomArray(ArrayPtr arr_s) {
+    int newSize = GetNewSize(); 
 
+    arr_s->size = newSize;
+    ReallocArray(arr_s); 
+    for (int i = 0; i < newSize; i++)
+        *(arr_s->ptr + i) = GetRandomValue(13, 70); 
+    PrintArray(arr_s);
+}
+// 5 & 6.
 void RemoveByValue(ArrayPtr arr_s) {
     int value;
     PrintArray(arr_s);
@@ -150,7 +156,24 @@ void RemoveByIndex(ArrayPtr arr_s) {
     PrintArray(arr_s);
 } 
 
-void DynamicMenu(ArrayPtr arr_s) {
+// General funcs
+void PrintMenu() {
+    printf("\n");
+    printf("  1. Вставить элемент в конец массива\n");
+    printf("  2. Перезаписать массив вручную.\n");
+    printf("  3. Перезаписать массив рандомно.\n");
+    printf("  4. Вывести массив на экран.\n");
+    printf("  5. Удалить элемент по индексу.\n");
+    printf("  6. Удалить элемент по значению.\n");
+    printf("  7. Выйти.\n");
+    printf("\n  ");
+}
+void StepBack() {
+    printf("\n");
+    system("pause");
+}
+// Menu
+void Menu(ArrayPtr arr_s) {
     system("cls");  
     PrintMenu();
     char option;
@@ -166,41 +189,43 @@ void DynamicMenu(ArrayPtr arr_s) {
             break;
         }
         case('3'): {
+            RandomArray(arr_s);
+            break;
+        }
+        case('4'): {
             PrintArray(arr_s); 
             break;
         } 
-        case('4'): {
+        case('5'): {
             RemoveByIndex(arr_s);
             break;
         }
-        case('5'): {
+        case('6'): {
             RemoveByValue(arr_s);
             break;
         } 
-        case('6'): {
+        case('7'): {
             // exit
             return;
         }
         default: {
-            DynamicMenu(arr_s);
+            Menu(arr_s);
             return;
         }
     } 
     StepBack();
-    DynamicMenu(arr_s);
+    Menu(arr_s);
 }
 
- 
-
- 
 
 
 int main() {
+    srand(time(0));
     system("chcp 1251");
     system("cls"); 
     
     Array arr_s = CreateArray(0);
-    DynamicMenu(&arr_s); 
+    Menu(&arr_s);
 
 	system("pause");
 	return 0;
