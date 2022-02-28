@@ -9,6 +9,18 @@ typedef struct Array {
 } Array;
 typedef Array* ArrayPtr;
 
+
+// FoolProof func
+int ScanInt(int* valuePtr) {
+    int scanCount = scanf("%d", valuePtr);
+    if (scanCount) return 1;
+    while (getc(stdin) != '\n') {
+        return 0;
+        scanCount = scanf("%d", valuePtr);
+    }
+    return 0;
+}
+
 void PrintMenu() {
     printf("1. Вставить элемент в конец массива\n");
     printf("2. Перезаписать массив полностью.\n");
@@ -18,13 +30,8 @@ void PrintMenu() {
     printf("6. Выйти.\n");
 }
 void StepBack() {
-    int stepBack; 
-    printf("\nВведите 1 чтобы вернуться\n");  
-    while (1) { 
-        scanf("%d", &stepBack);  
-        if (stepBack == 1)
-            return; 
-    } 
+    printf("\n");
+    system("pause");
 }
 
 
@@ -60,9 +67,11 @@ void PushBack(ArrayPtr arr_s) {
     arr_s->size++;
     ReallocArray(arr_s); 
     int newValue;
-    printf("Введите значение\n");
-     
-     
+    printf("Введите значение\n"); 
+    while (ScanInt(&newValue) == 0) {
+        system("cls");
+        printf("Введите значение\n");
+    }; 
     *(arr_s->ptr + arr_s->size - 1) = newValue; 
 }
 /*
@@ -151,29 +160,17 @@ void DynamicMenu(ArrayPtr arr_s) {
             return;
         }
         default: {
-            // DynamicMenu(mas, dynamicSize);
+            DynamicMenu(arr_s);
             return;
         }
     } 
-    printf("\n");
-    system("pause");
+    StepBack();
     DynamicMenu(arr_s);
 }
 
  
 
-// FoolProof func
-int ScanInt(int* valuePtr) {
-    int scanCount = scanf("%d", valuePtr); 
-    if (scanCount) return 1;
-    while (getc(stdin) != '\n') { 
-        return 0;
-        scanCount = scanf("%d", valuePtr); 
-    }
-    return 0;
-}
-
-
+ 
 
 
 int main() {
@@ -181,15 +178,15 @@ int main() {
     system("cls"); 
     
     Array arr_s = CreateArray(0);
-    int currh, value;
-    
+    /*
+    int currh, value; 
     printf("enter:\n");
     while (ScanInt(&value) == 0) {
         system("cls");
         printf("enter:\n");
-    };
+    };*/
     
-    // DynamicMenu(&arr_s); 
+    DynamicMenu(&arr_s); 
 
 	system("pause");
 	return 0;
