@@ -21,20 +21,21 @@ int ScanInt(int* valuePtr) {
     return 0;
 }
 
+
 void PrintMenu() {
-    printf("\n  1. Вставить элемент в конец массива\n");
+    printf("\n");
+    printf("  1. Вставить элемент в конец массива\n");
     printf("  2. Перезаписать массив полностью.\n");
     printf("  3. Вывести массив на экран.\n");
     printf("  4. Удалить элемент по значению.\n");
     printf("  5. Удалить элемент по индексу.\n");
-    printf("  6. Выйти.\n\n  ");
+    printf("  6. Выйти.\n");
+    printf("\n  ");
 }
 void StepBack() {
     printf("\n");
     system("pause");
 }
-
-
 
 
 Array CreateArray(int len) {
@@ -53,14 +54,16 @@ void DeleteArray(ArrayPtr arr_s) {
     free(arr_s);
 }
 
-
-void PrintArray(ArrayPtr arr_s) {
-    printf("\n  Массив: [ ");
-    for (int i = 0; i < arr_s->size; i++) {
-        printf("%d", *(arr_s->ptr + i));
-        if (i + 1 != arr_s->size)
+void PrintArrayPart(ArrayPtr arr_s, int start, int end) {
+    for (int k = start; k < end; k++) {
+        printf("%d", *(arr_s->ptr + k));
+        if (k != end - 1)
             printf(", ");
     }
+}
+void PrintArray(ArrayPtr arr_s) {
+    printf("\n  Массив: [ ");
+    PrintArrayPart(arr_s, 0, arr_s->size);
     printf(" ];\n");
 } 
 void PushBack(ArrayPtr arr_s) {
@@ -74,30 +77,43 @@ void PushBack(ArrayPtr arr_s) {
     }; 
     *(arr_s->ptr + arr_s->size - 1) = newValue; 
 }
-/*
-void DynamicChangeArray(int* mas, int* dynamicSize) {
-    int newLen = -1; 
-    while (newLen < 0 || newLen > 21) {
-        printf("Введите длину массива [0, 20]\n");
-        scanf("%d", &newLen); 
-    }  
-    for (int i = 0; i < newLen; i++) {
-        int value;
-        // system("cls");
-        printf("Введите %d чисел:\n", (newLen - i));
-        for (int k = 0; k < i; k++) {
-            printf("%d", *(mas + k));
-            if (k != newLen - 1)
-                printf(", ");
-        } 
-        scanf("%d", &value);  
-        *(mas + i) = value;
-        printf("%d\n", *(mas + i));
-    }
-    system("cls");  
-    *dynamicSize = newLen;
-}
 
+int GetNewSize() {
+    int newSize = -1; 
+    printf("\n  Введите длину массива: ");
+    while (ScanInt(&newSize) == 0 || newSize < 0) {
+        system("cls");
+        printf("\n  Введите корректную длину массива: ");
+    };
+    return newSize;
+}
+void ChangeArray(ArrayPtr arr_s) {
+    int newSize = GetNewSize();
+    system("cls");
+
+    arr_s -> size = newSize;
+    ReallocArray(arr_s);
+
+    for (int i = 0; i < newSize; i++) {
+        system("cls");
+        int nextValue; 
+        printf("\n  Введите %d чисел: ", (newSize - i));
+        PrintArrayPart(arr_s, 0, i);
+        if (i != 0 ) printf(", ");
+        while (ScanInt(&nextValue) == 0) {
+            system("cls");
+            printf("\n  Введите %d чисел: ", (newSize - i));
+            PrintArrayPart(arr_s, 0, i);
+            if (i != 0) printf(", ");
+        };  
+        *(arr_s->ptr + i) = nextValue; 
+    }
+    system("cls");
+    printf("\n  Введите 0 чисел: ");
+    PrintArrayPart(arr_s, 0, newSize); 
+    PrintArray(arr_s);
+}
+/*
 void DynamicDeleteByValue(int* mas, int* dynamicSize) {
     int value;
     printf("Введите значение, по которому удялятся элементы массива: \n");
@@ -140,7 +156,7 @@ void DynamicMenu(ArrayPtr arr_s) {
             break;
         }
         case('2'): {
-            // DynamicChangeArray(arr_s);
+            ChangeArray(arr_s);
             break;
         }
         case('3'): {
