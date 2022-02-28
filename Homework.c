@@ -122,19 +122,11 @@ void RemoveByValue(ArrayPtr arr_s) {
         system("cls");
         printf("\n  ¬ведите значение, элементы с которым хотите удалить: ");
     }; 
-    /*int offset = 0;
+    int offset = 0;
     for (int i = 0; i < arr_s->size; i++) {
         *(arr_s->ptr + i) = *(arr_s->ptr + i + offset);
         if (*(arr_s->ptr + i) == value) {
             offset++;
-            i--;
-            arr_s->size--;
-        }
-    }*/ 
-    for (int i = 0; i < arr_s->size; i++) {
-        if (*(arr_s->ptr + i) == value) {
-            for (int k = i; k < arr_s->size; k++)
-                *(arr_s->ptr + k) = *(arr_s->ptr + k + 1); 
             i--;
             arr_s->size--;
         }
