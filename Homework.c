@@ -227,6 +227,7 @@ int main() {
     Array arr_s = CreateArray(0);
     Menu(&arr_s);
 
+    DeleteArray(arr_s);
 	system("pause");
 	return 0;
 }
