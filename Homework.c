@@ -204,14 +204,26 @@ void Menu(ArrayPtr arr) {
             break;
         }
         case('4'): {
+            if (arr->size == 0) {
+                Menu(arr);
+                return;
+            }
             PrintArray(arr); 
             break;
         } 
         case('5'): {
+            if (arr->size == 0) {
+                Menu(arr);
+                return;
+            }
             RemoveByIndex(arr);
             break;
         }
         case('6'): {
+            if (arr->size == 0) {
+                Menu(arr);
+                return;
+            }
             RemoveByValue(arr);
             break;
         } 
