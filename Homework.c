@@ -1,8 +1,13 @@
-#include <stdio.h>
+п»ї#include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <time.h>
- 
+#include <windows.h>
+
+#define WHITE 15 
+#define DARKGREY 8
+
+
 typedef int* arr_p; 
 typedef struct Array {
     arr_p ptr;
@@ -12,20 +17,20 @@ typedef Array* ArrayPtr;
 
 
 // Dynamic's array funcs
-Array CreateArray(int len) {
+Array CreateArray(int size) {
     Array thisArr;
-    int* dynamicArr = (int*)malloc(len * sizeof(int));
+    int* dynamicArr = (int*)malloc(size * sizeof(int));
     thisArr.ptr = dynamicArr;
-    thisArr.size = len;
-    for (int i = 0; i < len; i++) *(dynamicArr + i) = 0;
+    thisArr.size = size;
+    for (int i = 0; i < size; i++) *(dynamicArr + i) = 0;
     return thisArr;
 }
-void ReallocArray(ArrayPtr arr_s) {
-    int* tmp_ptr = (int*)realloc(arr_s->ptr, arr_s->size * sizeof(int));
-    if (tmp_ptr != NULL) arr_s->ptr = tmp_ptr;
+void ReallocArray(ArrayPtr arr) {
+    int* tmp_ptr = (int*)realloc(arr->ptr, arr->size * sizeof(int));
+    if (tmp_ptr != NULL) arr->ptr = tmp_ptr;
 }
-void DeleteArray(ArrayPtr arr_s) {
-    free(arr_s);
+void DeleteArray(ArrayPtr arr) {
+    free(arr);
 }
 
 // FoolProof get int func
@@ -41,66 +46,66 @@ int  ScanInt(int* valuePtr) {
 
 
 // 4.
-void PrintArrayPart(ArrayPtr arr_s, int start, int end) {
+void PrintArrayPart(ArrayPtr arr, int start, int end) {
     for (int k = start; k < end; k++) {
-        printf("%d", *(arr_s->ptr + k));
+        printf("%d", *(arr->ptr + k));
         if (k != end - 1)
             printf(", ");
     }
 }
-void PrintArray(ArrayPtr arr_s) {
-    printf("\n  Массив: [ ");
-    PrintArrayPart(arr_s, 0, arr_s->size);
+void PrintArray(ArrayPtr arr) {
+    printf("\n  РњР°СЃСЃРёРІ: [ ");
+    PrintArrayPart(arr, 0, arr->size);
     printf(" ];\n");
 } 
 // 1.
-void PushBack(ArrayPtr arr_s) {
-    arr_s->size++;
-    ReallocArray(arr_s); 
+void PushBack(ArrayPtr arr) {
+    arr->size++;
+    ReallocArray(arr); 
     int newValue;
-    printf("\n  Введите значение: "); 
+    printf("\n  Р’РІРµРґРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ: "); 
     while (ScanInt(&newValue) == 0) {
         system("cls");
-        printf("\n  Введите значение: ");
+        printf("\n  Р’РІРµРґРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ: ");
     }; 
-    *(arr_s->ptr + arr_s->size - 1) = newValue; 
-    PrintArray(arr_s);
+    *(arr->ptr + arr->size - 1) = newValue; 
+    PrintArray(arr);
 }
 // 2.
 int  GetNewSize() {
     int newSize = -1; 
-    printf("\n  Введите длину массива: ");
+    printf("\n  Р’РІРµРґРёС‚Рµ РґР»РёРЅСѓ РјР°СЃСЃРёРІР°: ");
     while (ScanInt(&newSize) == 0 || newSize < 0) {
         system("cls");
-        printf("\n  Введите корректную длину массива: ");
+        printf("\n  Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ РґР»РёРЅСѓ РјР°СЃСЃРёРІР°: ");
     };
     return newSize;
 }
-void ChangeArray(ArrayPtr arr_s) {
+void ChangeArray(ArrayPtr arr) {
     int newSize = GetNewSize();
     system("cls");
 
-    arr_s -> size = newSize;
-    ReallocArray(arr_s);
+    arr -> size = newSize;
+    ReallocArray(arr);
 
     for (int i = 0; i < newSize; i++) {
         system("cls");
         int nextValue; 
-        printf("\n  Введите %d чисел: ", (newSize - i));
-        PrintArrayPart(arr_s, 0, i);
+        printf("\n  Р’РІРµРґРёС‚Рµ %d С‡РёСЃРµР»: ", (newSize - i));
+        PrintArrayPart(arr, 0, i);
         if (i != 0 ) printf(", ");
         while (ScanInt(&nextValue) == 0) {
             system("cls");
-            printf("\n  Введите %d чисел: ", (newSize - i));
-            PrintArrayPart(arr_s, 0, i);
+            printf("\n  Р’РІРµРґРёС‚Рµ %d С‡РёСЃРµР»: ", (newSize - i));
+            PrintArrayPart(arr, 0, i);
             if (i != 0) printf(", ");
         };  
-        *(arr_s->ptr + i) = nextValue; 
+        *(arr->ptr + i) = nextValue; 
     }
     system("cls");
-    printf("\n  Введите 0 чисел: ");
-    PrintArrayPart(arr_s, 0, newSize); 
-    PrintArray(arr_s);
+    printf("\n  Р’РІРµРґРёС‚Рµ 0 С‡РёСЃРµР»: ");
+    PrintArrayPart(arr, 0, newSize); 
+    PrintArray(arr);
 }
 // 3.
 int  GetRandomValue(int edge, int chance) {
@@ -110,62 +115,68 @@ int  GetRandomValue(int edge, int chance) {
         rndValue *= -1; 
     return rndValue;
 }
-void RandomArray(ArrayPtr arr_s) {
+void RandomArray(ArrayPtr arr) {
     int newSize = GetNewSize(); 
 
-    arr_s->size = newSize;
-    ReallocArray(arr_s); 
+    arr->size = newSize;
+    ReallocArray(arr); 
     for (int i = 0; i < newSize; i++)
-        *(arr_s->ptr + i) = GetRandomValue(13, 70); 
-    PrintArray(arr_s);
+        *(arr->ptr + i) = GetRandomValue(13, 70); 
+    PrintArray(arr);
 }
 // 5 & 6.
-void RemoveByValue(ArrayPtr arr_s) {
+void RemoveByValue(ArrayPtr arr) {
     int value;
-    PrintArray(arr_s);
-    printf("\n  Введите значение, элементы с которым хотите удалить: ");
+    PrintArray(arr);
+    printf("\n  Р’РІРµРґРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ, СЌР»РµРјРµРЅС‚С‹ СЃ РєРѕС‚РѕСЂС‹Рј С…РѕС‚РёС‚Рµ СѓРґР°Р»РёС‚СЊ: ");
     while (ScanInt(&value) == 0) {
         system("cls");
-        printf("\n  Введите значение, элементы с которым хотите удалить: ");
+        PrintArray(arr);
+        printf("\n  Р’РІРµРґРёС‚Рµ Р·РЅР°С‡РµРЅРёРµ, СЌР»РµРјРµРЅС‚С‹ СЃ РєРѕС‚РѕСЂС‹Рј С…РѕС‚РёС‚Рµ СѓРґР°Р»РёС‚СЊ: ");
     }; 
     int offset = 0;
-    for (int i = 0; i < arr_s->size; i++) {
-        *(arr_s->ptr + i) = *(arr_s->ptr + i + offset);
-        if (*(arr_s->ptr + i) == value) {
+    for (int i = 0; i < arr->size; i++) {
+        *(arr->ptr + i) = *(arr->ptr + i + offset);
+        if (*(arr->ptr + i) == value) {
             offset++;
             i--;
-            arr_s->size--;
+            arr->size--;
         }
     } 
-    ReallocArray(arr_s);
-    PrintArray(arr_s);
+    printf("  РЈРґР°Р»РµРЅРѕ СЌР»РµРјРµРЅС‚РѕРІ: %d\n", offset);
+    ReallocArray(arr);
+    PrintArray(arr);
 }
-void RemoveByIndex(ArrayPtr arr_s) { 
+void RemoveByIndex(ArrayPtr arr) { 
     int index;
-    PrintArray(arr_s);
-    printf("  Введите индекс, по которому удалится элемент массива: ");
-    while (ScanInt(&index) == 0 || !(index >= 0 && arr_s->size > index)) { 
+    PrintArray(arr);
+    printf("  Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃ, РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СѓРґР°Р»РёС‚СЃСЏ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР°: ");
+    while (ScanInt(&index) == 0 || !(index >= 0 && arr->size > index)) { 
         system("cls");
-        PrintArray(arr_s);
-        printf("  Введите индекс, по которому удалится элемент массива: ");
+        PrintArray(arr);
+        printf("  Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃ, РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СѓРґР°Р»РёС‚СЃСЏ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР°: ");
     };
-    for (int k = index; k < arr_s->size; k++)
-        *(arr_s->ptr + k) = *(arr_s->ptr + k + 1);
-    arr_s->size--;
-    ReallocArray(arr_s);
-    PrintArray(arr_s);
+    for (int k = index; k < arr->size; k++)
+        *(arr->ptr + k) = *(arr->ptr + k + 1);
+    arr->size--;
+    ReallocArray(arr);
+    PrintArray(arr);
 } 
 
 // General funcs
-void PrintMenu() {
+void PrintMenu(ArrayPtr arr) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
+
     printf("\n");
-    printf("  1. Вставить элемент в конец массива\n");
-    printf("  2. Перезаписать массив вручную.\n");
-    printf("  3. Перезаписать массив рандомно.\n");
-    printf("  4. Вывести массив на экран.\n");
-    printf("  5. Удалить элемент по индексу.\n");
-    printf("  6. Удалить элемент по значению.\n");
-    printf("  7. Выйти.\n");
+    printf("  1. Р’СЃС‚Р°РІРёС‚СЊ СЌР»РµРјРµРЅС‚ РІ РєРѕРЅРµС† РјР°СЃСЃРёРІР°\n");
+    printf("  2. РџРµСЂРµР·Р°РїРёСЃР°С‚СЊ РјР°СЃСЃРёРІ РІСЂСѓС‡РЅСѓСЋ.\n");
+    printf("  3. РџРµСЂРµР·Р°РїРёСЃР°С‚СЊ РјР°СЃСЃРёРІ СЂР°РЅРґРѕРјРЅРѕ.\n");
+    if (arr->size == 0) SetConsoleTextAttribute(hConsole, DARKGREY);
+        printf("  4. Р’С‹РІРµСЃС‚Рё РјР°СЃСЃРёРІ РЅР° СЌРєСЂР°РЅ.\n"); 
+        printf("  5. РЈРґР°Р»РёС‚СЊ СЌР»РµРјРµРЅС‚ РїРѕ РёРЅРґРµРєСЃСѓ.\n");
+        printf("  6. РЈРґР°Р»РёС‚СЊ СЌР»РµРјРµРЅС‚ РїРѕ Р·РЅР°С‡РµРЅРёСЋ.\n");
+    if (arr->size == 0) SetConsoleTextAttribute(hConsole, WHITE);
+    printf("  7. Р’С‹Р№С‚Рё.\n");
     printf("\n  ");
 }
 void StepBack() {
@@ -173,35 +184,35 @@ void StepBack() {
     system("pause");
 }
 // Menu
-void Menu(ArrayPtr arr_s) {
+void Menu(ArrayPtr arr) {
     system("cls");  
-    PrintMenu();
+    PrintMenu(arr);
     char option;
     scanf("%s", &option); 
     system("cls"); 
     switch (option) {
         case('1'): {
-            PushBack(arr_s);
+            PushBack(arr);
             break;
         }
         case('2'): {
-            ChangeArray(arr_s);
+            ChangeArray(arr);
             break;
         }
         case('3'): {
-            RandomArray(arr_s);
+            RandomArray(arr);
             break;
         }
         case('4'): {
-            PrintArray(arr_s); 
+            PrintArray(arr); 
             break;
         } 
         case('5'): {
-            RemoveByIndex(arr_s);
+            RemoveByIndex(arr);
             break;
         }
         case('6'): {
-            RemoveByValue(arr_s);
+            RemoveByValue(arr);
             break;
         } 
         case('7'): {
@@ -209,12 +220,12 @@ void Menu(ArrayPtr arr_s) {
             return;
         }
         default: {
-            Menu(arr_s);
+            Menu(arr);
             return;
         }
     } 
     StepBack();
-    Menu(arr_s);
+    Menu(arr);
 }
 
 
@@ -224,11 +235,10 @@ int main() {
     system("chcp 1251");
     system("cls"); 
     
-    Array arr_s = CreateArray(0);
-    Menu(&arr_s);
-
-    DeleteArray(arr_s);
-	system("pause");
+    Array arr = CreateArray(0);
+    Menu(&arr);
+      
+    DeleteArray(&arr); 
 	return 0;
 }
 
