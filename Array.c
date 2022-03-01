@@ -7,13 +7,24 @@
 #define WHITE 15 
 #define DARKGREY 8
 
-
 typedef int* arr_p; 
 typedef struct Array {
     arr_p ptr;
     int size;
 } Array;
 typedef Array* ArrayPtr;
+
+
+// FoolProof get int func
+int  ScanInt(int* valuePtr) {
+    int scanCount = scanf("%d", valuePtr);
+    if (scanCount) return 1;
+    while (getc(stdin) != '\n') {
+        return 0;
+        scanCount = scanf("%d", valuePtr);
+    }
+    return 0;
+} 
 
 
 // Dynamic's array funcs
@@ -33,17 +44,6 @@ void DeleteArray(ArrayPtr arr) {
     free(arr);
 }
 
-// FoolProof get int func
-int  ScanInt(int* valuePtr) {
-    int scanCount = scanf("%d", valuePtr);
-    if (scanCount) return 1;
-    while (getc(stdin) != '\n') {
-        return 0;
-        scanCount = scanf("%d", valuePtr);
-    }
-    return 0;
-}
-
 
 // 4.
 void PrintArrayPart(ArrayPtr arr, int start, int end) {
@@ -54,7 +54,7 @@ void PrintArrayPart(ArrayPtr arr, int start, int end) {
     }
 }
 void PrintArray(ArrayPtr arr) {
-    printf("\n  Массив: [ ");
+    printf("  Массив: [ ");
     PrintArrayPart(arr, 0, arr->size);
     printf(" ];\n");
 } 
@@ -103,8 +103,9 @@ void ChangeArray(ArrayPtr arr) {
         *(arr->ptr + i) = nextValue; 
     }
     system("cls");
-    printf("\n  Введите 0 чисел: ");
+    printf("\n  Введённые числа: ");
     PrintArrayPart(arr, 0, newSize); 
+    printf("\n");
     PrintArray(arr);
 }
 // 3.
@@ -127,10 +128,12 @@ void RandomArray(ArrayPtr arr) {
 // 5 & 6.
 void RemoveByValue(ArrayPtr arr) {
     int value;
+    printf("\n");
     PrintArray(arr);
     printf("\n  Введите значение, элементы с которым хотите удалить: ");
     while (ScanInt(&value) == 0) {
         system("cls");
+        printf("\n");
         PrintArray(arr);
         printf("\n  Введите значение, элементы с которым хотите удалить: ");
     }; 
@@ -149,10 +152,12 @@ void RemoveByValue(ArrayPtr arr) {
 }
 void RemoveByIndex(ArrayPtr arr) { 
     int index;
+    printf("\n");
     PrintArray(arr);
     printf("  Введите индекс, по которому удалится элемент массива: ");
     while (ScanInt(&index) == 0 || !(index >= 0 && arr->size > index)) { 
         system("cls");
+        printf("\n");
         PrintArray(arr);
         printf("  Введите индекс, по которому удалится элемент массива: ");
     };
@@ -160,6 +165,7 @@ void RemoveByIndex(ArrayPtr arr) {
         *(arr->ptr + k) = *(arr->ptr + k + 1);
     arr->size--;
     ReallocArray(arr);
+    printf("\n");
     PrintArray(arr);
 } 
 
@@ -180,8 +186,8 @@ void PrintMenu(ArrayPtr arr) {
     printf("\n  ");
 }
 void StepBack() {
-    printf("\n");
-    system("pause");
+    printf("\n  Для продолжения нажмите любую клавишу...");
+    getch();
 }
 // Menu
 void Menu(ArrayPtr arr) {
@@ -208,6 +214,7 @@ void Menu(ArrayPtr arr) {
                 Menu(arr);
                 return;
             }
+            printf("\n");
             PrintArray(arr); 
             break;
         } 
@@ -242,6 +249,8 @@ void Menu(ArrayPtr arr) {
 
 
 
+
+
 int main() {
     srand(time(0));
     system("chcp 1251");
@@ -249,7 +258,8 @@ int main() {
     
     Array arr = CreateArray(0);
     Menu(&arr);
-      
+
+ 
     DeleteArray(&arr); 
 	return 0;
 }
