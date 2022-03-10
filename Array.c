@@ -20,33 +20,30 @@ int  ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
     while (getc(stdin) != '\n') {
-        return 0;
-        scanCount = scanf("%d", valuePtr);
-    }
-    return 0;
+        return 0; 
+    } 
 } 
 
 
 // Dynamic's array funcs
 Array CreateArray(int size) {
     Array thisArr;
-    int* dynamicArr = (int*)malloc(size * sizeof(int));
+    int* dynamicArr = (int*)calloc(size * sizeof(int), sizeof(int));
     thisArr.ptr = dynamicArr;
     if (dynamicArr == NULL) {
         thisArr.size = -1;
         return thisArr;
     }
     thisArr.size = size;
-    for (int i = 0; i < size; i++) *(dynamicArr + i) = 0;
     return thisArr;
 }
 int ReallocArray(ArrayPtr arr, int newSize) {
-    int* tmp_ptr = (int*)realloc(arr->ptr, newSize * sizeof(int));
-    if (tmp_ptr != NULL) {
+    int* tmp_ptr = (int*)realloc(arr->ptr, newSize * sizeof(int)); 
+    if (tmp_ptr != NULL || newSize == 0) {
         arr->ptr = tmp_ptr;
         arr->size = newSize;
     } 
-    return (tmp_ptr != NULL);
+    return (tmp_ptr != NULL || arr->size == 0);
 }
 void DeleteArray(ArrayPtr arr) {
     free(arr->ptr);
@@ -78,7 +75,7 @@ void PushBack(ArrayPtr arr) {
         system("cls");
         printf("\n  Введите значение: ");
     }; 
-    *(arr->ptr + arr->size - 1) = newValue; 
+    arr->ptr[arr->size - 1] = newValue;
     PrintArray(arr);
 }
 // 2.
@@ -94,7 +91,7 @@ int  GetNewSize() {
 void ChangeArray(ArrayPtr arr) {
     int newSize = GetNewSize();
     system("cls");
-    if (!ReallocArray(arr, newSize)) {
+    if (!ReallocArray(arr, newSize) && newSize != 0) {
         printf("Error: realloc finished with NULL ptr!\n");
         return;
     } 
@@ -110,7 +107,7 @@ void ChangeArray(ArrayPtr arr) {
             PrintArrayPart(arr, 0, i);
             if (i != 0) printf(", ");
         };  
-        *(arr->ptr + i) = nextValue; 
+        arr->ptr[i] = nextValue;
     }
     system("cls");
     printf("\n  Введённые числа: ");
@@ -128,12 +125,12 @@ int  GetRandomValue(int edge, int chance) {
 }
 void RandomArray(ArrayPtr arr) {
     int newSize = GetNewSize(); 
-    if (!ReallocArray(arr, newSize)) {
+    if (!ReallocArray(arr, newSize) && newSize != 0) {
         printf("Error: realloc finished with NULL ptr!\n");
         return;
-    } 
+    }
     for (int i = 0; i < newSize; i++)
-        *(arr->ptr + i) = GetRandomValue(13, 70); 
+        arr->ptr[i] = GetRandomValue(13, 70);
     PrintArray(arr);
 }
 // 5 & 6.
@@ -150,16 +147,16 @@ void RemoveByValue(ArrayPtr arr) {
     }; 
     int offset = 0;
     for (int i = 0; i < arr->size; i++)
-        if (*(arr->ptr + i) == value)
+        if (arr->ptr[i] == value)
             offset++;
-    if (!ReallocArray(arr, arr->size-offset)) {
-        printf("\nError: realloc finished with NULL ptr!\n");
+    if (!ReallocArray(arr, arr->size - offset) && arr->size != 0) {
+        printf("Error: realloc finished with NULL ptr!\n");
         return;
     }
     offset = 0;
     for (int i = 0; i < arr->size-offset; i++) {
-        *(arr->ptr + i) = *(arr->ptr + i + offset);
-        if (*(arr->ptr + i) == value) {
+        arr->ptr[i] = arr->ptr[i + offset];
+        if (arr->ptr[i] == value) {
             offset++;
             i--; 
         }
@@ -179,12 +176,12 @@ void RemoveByIndex(ArrayPtr arr) {
         PrintArray(arr);
         printf("  Введите индекс, по которому удалится элемент массива: ");
     };
-    if (!ReallocArray(arr, arr->size - 1)) {
-        printf("\nError: realloc finished with NULL ptr!\n");
+    if (!ReallocArray(arr, arr->size - 1) && arr->size != 0) {
+        printf("Error: realloc finished with NULL ptr!\n");
         return;
     }
     for (int k = index; k < arr->size; k++)
-        *(arr->ptr + k) = *(arr->ptr + k + 1); 
+        arr->ptr[k] = arr->ptr[k+1];
      
     printf("\n");
     PrintArray(arr);
@@ -212,60 +209,51 @@ void StepBack() {
 }
 // Menu
 void Menu(ArrayPtr arr) {
-    system("cls");  
-    PrintMenu(arr);
-    char option;
-    scanf("%s", &option); 
-    system("cls"); 
-    switch (option) {
-        case('1'): {
-            PushBack(arr);
-            break;
-        }
-        case('2'): {
-            ChangeArray(arr);
-            break;
-        }
-        case('3'): {
-            RandomArray(arr);
-            break;
-        }
-        case('4'): {
-            if (arr->size == 0) {
-                Menu(arr);
+    while (1) { 
+        system("cls");
+        PrintMenu(arr);
+        char option;
+        scanf("%s", &option);
+        system("cls");
+        switch (option) {
+            case('1'): {
+                PushBack(arr);
+                break;
+            }
+            case('2'): {
+                ChangeArray(arr);
+                break;
+            }
+            case('3'): {
+                RandomArray(arr);
+                break;
+            }
+            case('4'): {
+                printf("\n");
+                if (arr->size != 0)
+                    PrintArray(arr);
+                continue;
+            }
+            case('5'): {
+                if (arr->size != 0) 
+                    RemoveByIndex(arr);
+                continue;
+            }
+            case('6'): {
+                if (arr->size != 0)  
+                    RemoveByValue(arr);
+                continue;
+            }
+            case('7'): {
+                // exit
                 return;
             }
-            printf("\n");
-            PrintArray(arr); 
-            break;
-        } 
-        case('5'): {
-            if (arr->size == 0) {
-                Menu(arr);
-                return;
+            default: {
+                continue;
             }
-            RemoveByIndex(arr);
-            break;
         }
-        case('6'): {
-            if (arr->size == 0) {
-                Menu(arr);
-                return;
-            }
-            RemoveByValue(arr);
-            break;
-        } 
-        case('7'): {
-            // exit
-            return;
-        }
-        default: {
-            Menu(arr);
-            return;
-        }
-    } 
-    StepBack();
-    Menu(arr);
+        StepBack(); 
+    }
 }
 
 
@@ -281,6 +269,8 @@ int main() {
         DeleteArray(&arr);
         return;
     }
+    
+    
     Menu(&arr);
      
 
