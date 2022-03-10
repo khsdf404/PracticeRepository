@@ -32,16 +32,24 @@ Array CreateArray(int size) {
     Array thisArr;
     int* dynamicArr = (int*)malloc(size * sizeof(int));
     thisArr.ptr = dynamicArr;
+    if (dynamicArr == NULL) {
+        thisArr.size = -1;
+        return thisArr;
+    }
     thisArr.size = size;
     for (int i = 0; i < size; i++) *(dynamicArr + i) = 0;
     return thisArr;
 }
-void ReallocArray(ArrayPtr arr) {
-    int* tmp_ptr = (int*)realloc(arr->ptr, arr->size * sizeof(int));
-    if (tmp_ptr != NULL) arr->ptr = tmp_ptr;
+int ReallocArray(ArrayPtr arr, int newSize) {
+    int* tmp_ptr = (int*)realloc(arr->ptr, newSize * sizeof(int));
+    if (tmp_ptr != NULL) {
+        arr->ptr = tmp_ptr;
+        arr->size = newSize;
+    } 
+    return (tmp_ptr != NULL);
 }
 void DeleteArray(ArrayPtr arr) {
-    free(arr);
+    free(arr->ptr);
 }
 
 
@@ -60,8 +68,10 @@ void PrintArray(ArrayPtr arr) {
 } 
 // 1.
 void PushBack(ArrayPtr arr) {
-    arr->size++;
-    ReallocArray(arr); 
+    if (!ReallocArray(arr, arr->size + 1)) {
+        printf("Error: realloc finished with NULL ptr!\n");
+        return;
+    } 
     int newValue;
     printf("\n  Введите значение: "); 
     while (ScanInt(&newValue) == 0) {
@@ -84,10 +94,10 @@ int  GetNewSize() {
 void ChangeArray(ArrayPtr arr) {
     int newSize = GetNewSize();
     system("cls");
-
-    arr -> size = newSize;
-    ReallocArray(arr);
-
+    if (!ReallocArray(arr, newSize)) {
+        printf("Error: realloc finished with NULL ptr!\n");
+        return;
+    } 
     for (int i = 0; i < newSize; i++) {
         system("cls");
         int nextValue; 
@@ -118,9 +128,10 @@ int  GetRandomValue(int edge, int chance) {
 }
 void RandomArray(ArrayPtr arr) {
     int newSize = GetNewSize(); 
-
-    arr->size = newSize;
-    ReallocArray(arr); 
+    if (!ReallocArray(arr, newSize)) {
+        printf("Error: realloc finished with NULL ptr!\n");
+        return;
+    } 
     for (int i = 0; i < newSize; i++)
         *(arr->ptr + i) = GetRandomValue(13, 70); 
     PrintArray(arr);
@@ -138,16 +149,23 @@ void RemoveByValue(ArrayPtr arr) {
         printf("\n  Введите значение, элементы с которым хотите удалить: ");
     }; 
     int offset = 0;
-    for (int i = 0; i < arr->size; i++) {
+    for (int i = 0; i < arr->size; i++)
+        if (*(arr->ptr + i) == value)
+            offset++;
+    if (!ReallocArray(arr, arr->size-offset)) {
+        printf("\nError: realloc finished with NULL ptr!\n");
+        return;
+    }
+    offset = 0;
+    for (int i = 0; i < arr->size-offset; i++) {
         *(arr->ptr + i) = *(arr->ptr + i + offset);
         if (*(arr->ptr + i) == value) {
             offset++;
-            i--;
-            arr->size--;
+            i--; 
         }
     } 
     printf("  Удалено элементов: %d\n", offset);
-    ReallocArray(arr);
+     
     PrintArray(arr);
 }
 void RemoveByIndex(ArrayPtr arr) { 
@@ -161,10 +179,13 @@ void RemoveByIndex(ArrayPtr arr) {
         PrintArray(arr);
         printf("  Введите индекс, по которому удалится элемент массива: ");
     };
+    if (!ReallocArray(arr, arr->size - 1)) {
+        printf("\nError: realloc finished with NULL ptr!\n");
+        return;
+    }
     for (int k = index; k < arr->size; k++)
-        *(arr->ptr + k) = *(arr->ptr + k + 1);
-    arr->size--;
-    ReallocArray(arr);
+        *(arr->ptr + k) = *(arr->ptr + k + 1); 
+     
     printf("\n");
     PrintArray(arr);
 } 
@@ -248,19 +269,23 @@ void Menu(ArrayPtr arr) {
 }
 
 
-
-
-
 int main() {
     srand(time(0));
     system("chcp 1251");
     system("cls"); 
     
     Array arr = CreateArray(0);
+    if (arr.size == -1) {
+        printf("Error: malloc was finished with NULL ptr!\n");
+        system("pause");
+        DeleteArray(&arr);
+        return;
+    }
     Menu(&arr);
+     
 
- 
-    DeleteArray(&arr); 
+    system("pause");
+    DeleteArray(&arr);  
 	return 0;
 }
 
