@@ -19,9 +19,8 @@ typedef Array* ArrayPtr;
 int  ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
-    while (getc(stdin) != '\n') {
-        return 0; 
-    } 
+    getc(stdin) != '\n';
+    return 0;
 } 
 
 
@@ -53,7 +52,7 @@ void DeleteArray(ArrayPtr arr) {
 // 4.
 void PrintArrayPart(ArrayPtr arr, int start, int end) {
     for (int k = start; k < end; k++) {
-        printf("%d", *(arr->ptr + k));
+        printf("%d", arr->ptr[k]);
         if (k != end - 1)
             printf(", ");
     }
