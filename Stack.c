@@ -63,33 +63,35 @@ int Pop(StackPtr stack) {
     return topElem;
 }
 int Push(StackPtr stack, int newValue) { 
-    if (!ReallocStack(stack, stack->size + 1))
-        return REALLOC_ERROR;
+    if (!ReallocStack(stack, stack->size + 1)) return REALLOC_ERROR;
     for (int i = 0; i < stack->size - 1; i++)
         stack->ptr[i + 1] = stack->ptr[i];
     stack->ptr[0] = newValue;
     return stack->ptr[0];
 }
-Stack GetPrimaryState(StackPtr stack) {
+StackPtr GetPrimaryState(StackPtr stack) {
     Stack currStack = CreateStack();
     if (!ReallocStack(&currStack, stack->size))
-        return *stack;
+        return stack;
     for (int i = 0; i < stack->size; i++)
         currStack.ptr[i] = stack->ptr[i];
-    return currStack;
+    return &currStack;
 }
-void SetPrimaryState(int errorCode, StackPtr stack, StackPtr primaryState) {
-    if (errorCode == SUCCESS) return;
+int WasError(int errorCode, StackPtr stack, StackPtr primaryState) {
+    if (errorCode == SUCCESS) return 0;
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
     if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
     DeleteStack(stack);
     stack = primaryState;
+    return 1;
 }
 
+
 // not BASE
-int FreeStack(StackPtr stack) {
-    Stack primaryState = GetPrimaryState(stack);
-    if (&primaryState == stack) return REALLOC_ERROR; 
+int FreeStack(StackPtr stack, StackPtr primaryStack) {
+    DeleteStack(primaryStack);
+    primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR;
     printf("\n  {");
     int peakElem = Pop(stack);
     while (peakElem > 0) {
@@ -102,9 +104,10 @@ int FreeStack(StackPtr stack) {
     printf(" };\n");
     return SUCCESS;
 }
-int SwapTop(StackPtr stack) {
-    Stack primaryState = GetPrimaryState(stack);
-    if (&primaryState == stack) return REALLOC_ERROR;
+int SwapTop(StackPtr stack, StackPtr primaryStack) {
+    DeleteStack(primaryStack);
+    primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR;
 
     int a = Pop(stack);
     if (a == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
@@ -119,9 +122,10 @@ int SwapTop(StackPtr stack) {
     printf("%d, %d", a, b);
     return SUCCESS;
 }
-int PopBack(StackPtr stack) {
-    Stack primaryState = GetPrimaryState(stack);
-    if (&primaryState == stack) return REALLOC_ERROR;
+int PopBack(StackPtr stack, StackPtr primaryStack) {
+    DeleteStack(primaryStack);
+    primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR;
 
     Stack tempStack = CreateStack();
     int peakElem = Pop(stack);
@@ -164,7 +168,7 @@ void StepBack() {
     getch();
 }
 // Menu
-void Menu(StackPtr stack) {
+void Menu(StackPtr stack, StackPtr primaryStack) {
     while (1) {
         system("cls");
         PrintMenu();
@@ -172,33 +176,39 @@ void Menu(StackPtr stack) {
         scanf("%s", &option);
         system("cls");
         switch (option) {
-        case('1'): { 
-            FreeStack(stack);
-            continue;
-        }
-        case('2'): { 
-            continue;
-        }
-        case('3'): { 
-            continue;
-        }
-        case('4'): {
-            printf("\n"); 
-            continue;
-        }
-        case('5'): { 
-            continue;
-        }
-        case('6'): { 
-            continue;
-        }
-        case('7'): {
-            // exit
-            return;
-        }
-        default: {
-            continue;
-        }
+            case('1'): {
+                int errorCode = FreeStack(stack, primaryStack);
+                WasError(errorCode, stack, primaryStack);
+                continue;
+            }
+            case('2'): {
+                int errorCode = Push(stack, 2);
+                WasError(errorCode, stack, primaryStack);
+                continue;
+            }
+            case('3'): { 
+                int peakElem = Pop(stack);
+                if (WasError(peakElem, stack, primaryStack)) continue;
+                printf("%d", peakElem);
+                continue;
+            }
+            case('4'): {
+                printf("\n"); 
+                continue;
+            }
+            case('5'): { 
+                continue;
+            }
+            case('6'): { 
+                continue;
+            }
+            case('7'): {
+                // exit
+                return;
+            }
+            default: {
+                continue;
+            }
         }
         StepBack();
     }
@@ -212,7 +222,8 @@ int main() {
 
 
     Stack stack = CreateStack();
-    Menu(&stack);
+    Stack primaryStack = CreateStack();
+    Menu(&stack, &primaryStack);
 
 
     system("pause");
