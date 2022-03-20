@@ -6,6 +6,7 @@
 
 #define WHITE 15 
 #define DARKGREY 8
+#define SUCCESS 1
 #define EMPTY_SIZE_ERROR -1 
 #define EMPTY_SIZE_MSG printf("\n  Error: not enough size for it!\n")
 #define REALLOC_ERROR -2
@@ -72,17 +73,23 @@ int Push(StackPtr stack, int newValue) {
 Stack GetPrimaryState(StackPtr stack) {
     Stack currStack = CreateStack();
     if (!ReallocStack(&currStack, stack->size))
-        return stack;
+        return *stack;
     for (int i = 0; i < stack->size; i++)
-        currStack[i] = stack->ptr[i];
+        currStack.ptr[i] = stack->ptr[i];
     return currStack;
+}
+void SetPrimaryState(int errorCode, StackPtr stack, StackPtr primaryState) {
+    if (errorCode == SUCCESS) return;
+    if (errorCode == REALLOC_ERROR) REALLOC_MSG;
+    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
+    DeleteStack(stack);
+    stack = primaryState;
 }
 
 // not BASE
-void FreeStack(StackPtr stack) {
+int FreeStack(StackPtr stack) {
     Stack primaryState = GetPrimaryState(stack);
-    if (&primaryState == stack) // realloc error
-        return; 
+    if (&primaryState == stack) return REALLOC_ERROR; 
     printf("\n  {");
     int peakElem = Pop(stack);
     while (peakElem > 0) {
@@ -90,82 +97,54 @@ void FreeStack(StackPtr stack) {
         peakElem = Pop(stack);
         if (peakElem > 0)
             printf(", ");
-    }
-    if (peakElem == REALLOC_ERROR) {
-        printf(" ...");
-        REALLOC_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-    }
+    } 
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR; 
     printf(" };\n");
+    return SUCCESS;
 }
-void SwapTop(StackPtr stack) {
+int SwapTop(StackPtr stack) {
     Stack primaryState = GetPrimaryState(stack);
-    if (&primaryState == stack) // realloc error
-        return;
+    if (&primaryState == stack) return REALLOC_ERROR;
+
     int a = Pop(stack);
-    if (a == EMPTY_SIZE_ERROR) {
-        EMPTY_SIZE_MSG;
-        return;
-    }
-    if (a == REALLOC_ERROR) {
-        REALLOC_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-        return;
-    }
+    if (a == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
+    if (a == REALLOC_ERROR) return REALLOC_ERROR;
         
     int b = Pop(stack);
-    if (b == EMPTY_SIZE_ERROR) {
-        EMPTY_SIZE_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-        return;
-    }
-    if (b == REALLOC_ERROR) {
-        REALLOC_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-        return;
-    }
-    
-    a = Push(stack, a);
-    if (a == REALLOC_ERROR) {
-        REALLOC_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-        return;
-    }
-    b = Push(stack, b);
-    if (b == REALLOC_ERROR) {
-        REALLOC_MSG;
-        DeleteStack(stack);
-        stack = &primaryState;
-        return;
-    }
+    if (b == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
+    if (b == REALLOC_ERROR) return REALLOC_ERROR;
+  
+    if (Push(stack, a) == REALLOC_ERROR) return REALLOC_ERROR;
+    if (Push(stack, b) == REALLOC_ERROR) return REALLOC_ERROR;
     printf("%d, %d", a, b);
+    return SUCCESS;
 }
-void PopBack(StackPtr stack) {
+int PopBack(StackPtr stack) {
+    Stack primaryState = GetPrimaryState(stack);
+    if (&primaryState == stack) return REALLOC_ERROR;
+
     Stack tempStack = CreateStack();
-    // { 1, 2, 3 } => { 3, 2, 1 }
     int peakElem = Pop(stack);
+    if (peakElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
     while (peakElem > 0) {
         Push(&tempStack, peakElem);
         peakElem = Pop(stack);
     }
-    Pop(&tempStack); // check -2 error
-    
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (Pop(&tempStack) == REALLOC_ERROR) return REALLOC_ERROR;
+
     peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         Push(stack, peakElem);
         peakElem = Pop(&tempStack);
     }
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    return SUCCESS;
 }
 
 
-
 // General funcs
-void PrintMenu(StackPtr arr) {
+void PrintMenu() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
     printf("\n");
@@ -185,15 +164,16 @@ void StepBack() {
     getch();
 }
 // Menu
-void Menu(StackPtr arr) {
+void Menu(StackPtr stack) {
     while (1) {
         system("cls");
-        PrintMenu(arr);
+        PrintMenu();
         char option;
         scanf("%s", &option);
         system("cls");
         switch (option) {
         case('1'): { 
+            FreeStack(stack);
             continue;
         }
         case('2'): { 
