@@ -6,7 +6,11 @@
 
 #define WHITE 15 
 #define DARKGREY 8
-#define MALLOC_ERROR printf("\n  Error: malloc was finished with NULL ptr!\n")
+#define EMPTY_SIZE_ERROR -1 
+#define EMPTY_SIZE_MSG printf("\n  Error: not enough size for it!\n")
+#define REALLOC_ERROR -2
+#define REALLOC_MSG printf("\n  Error: realloc was finished with NULL ptr!\n")
+
 
 typedef int* arr_p;
 typedef struct Array {
@@ -25,15 +29,12 @@ int  ScanInt(int* valuePtr) {
 
 
 // Dynamic's array funcs
-Stack CreateStack(int size) {
+
+Stack CreateStack() {
     Stack thisStack;
-    int* dynamicArr = (int*)calloc(size * sizeof(int), sizeof(int));
+    int* dynamicArr = (int*)calloc(0, sizeof(int));
     thisStack.ptr = dynamicArr;
-    if (dynamicArr == NULL) {
-        thisStack.size = -1;
-        return thisStack;
-    }
-    thisStack.size = size;
+    thisStack.size = 0;
     return thisStack;
 }
 int ReallocStack(StackPtr stack, int newSize) {
@@ -42,49 +43,126 @@ int ReallocStack(StackPtr stack, int newSize) {
         stack->ptr = tmp_ptr;
         stack->size = newSize;
     }
+    else stack->size = -1;
     return (tmp_ptr != NULL || stack->size == 0);
 }
 void DeleteStack(StackPtr stack) {
+    stack->size = 0;
     free(stack->ptr);
 }
 
-void PopTop(StackPtr stack) {
-    // {1,2,3,4}  
-    printf("\n  %d", stack->ptr[stack->size - 1]);
-    for (int i = 0; i < stack->size; i++) {
+// это база
+int Pop(StackPtr stack) {
+    if (stack->size == 0) return EMPTY_SIZE_ERROR;
+    int topElem = stack->ptr[0];
+    for (int i = 0; i < stack->size - 1; i++)
         stack->ptr[i] = stack->ptr[i+1];
-    }
-    ReallocStack(stack, stack->size - 1); // check errors 
+    if (!ReallocStack(stack, stack->size - 1))
+        return REALLOC_ERROR; 
+    return topElem;
 }
-void PushTop(StackPtr stack) {
-    int newValue = 2; // getValue func
-    ReallocStack(stack, stack->size + 1); // check errors  
-    for (int i = 0; i < stack->size; i++) {
+int Push(StackPtr stack, int newValue) { 
+    if (!ReallocStack(stack, stack->size + 1))
+        return REALLOC_ERROR;
+    for (int i = 0; i < stack->size - 1; i++)
         stack->ptr[i + 1] = stack->ptr[i];
-    }
     stack->ptr[0] = newValue;
+    return stack->ptr[0];
+}
+Stack GetPrimaryState(StackPtr stack) {
+    Stack currStack = CreateStack();
+    if (!ReallocStack(&currStack, stack->size))
+        return stack;
+    for (int i = 0; i < stack->size; i++)
+        currStack[i] = stack->ptr[i];
+    return currStack;
 }
 
+// not BASE
 void FreeStack(StackPtr stack) {
+    Stack primaryState = GetPrimaryState(stack);
+    if (&primaryState == stack) // realloc error
+        return; 
     printf("\n  {");
-    while (stack->size > 0) {
-        printf("%d, ", stack->ptr[0]);
-        PopTop(stack);
-    } 
-    printf(" }"); 
+    int peakElem = Pop(stack);
+    while (peakElem > 0) {
+        printf("%d", peakElem);
+        peakElem = Pop(stack);
+        if (peakElem > 0)
+            printf(", ");
+    }
+    if (peakElem == REALLOC_ERROR) {
+        printf(" ...");
+        REALLOC_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+    }
+    printf(" };\n");
+}
+void SwapTop(StackPtr stack) {
+    Stack primaryState = GetPrimaryState(stack);
+    if (&primaryState == stack) // realloc error
+        return;
+    int a = Pop(stack);
+    if (a == EMPTY_SIZE_ERROR) {
+        EMPTY_SIZE_MSG;
+        return;
+    }
+    if (a == REALLOC_ERROR) {
+        REALLOC_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+        return;
+    }
+        
+    int b = Pop(stack);
+    if (b == EMPTY_SIZE_ERROR) {
+        EMPTY_SIZE_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+        return;
+    }
+    if (b == REALLOC_ERROR) {
+        REALLOC_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+        return;
+    }
+    
+    a = Push(stack, a);
+    if (a == REALLOC_ERROR) {
+        REALLOC_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+        return;
+    }
+    b = Push(stack, b);
+    if (b == REALLOC_ERROR) {
+        REALLOC_MSG;
+        DeleteStack(stack);
+        stack = &primaryState;
+        return;
+    }
+    printf("%d, %d", a, b);
+}
+void PopBack(StackPtr stack) {
+    Stack tempStack = CreateStack();
+    // { 1, 2, 3 } => { 3, 2, 1 }
+    int peakElem = Pop(stack);
+    while (peakElem > 0) {
+        Push(&tempStack, peakElem);
+        peakElem = Pop(stack);
+    }
+    Pop(&tempStack); // check -2 error
+    
+    peakElem = Pop(&tempStack);
+    while (peakElem > 0) {
+        Push(stack, peakElem);
+        peakElem = Pop(&tempStack);
+    }
 }
 
-int CheckSize(int stackSize) {
-    Stack tempStack = CreateStack(stackSize);
-    if (stackSize == 0)
-        return 0;
-    PopTop(tempStack);
-    if (tempStack.size == 0)
-        return 1;
-}
-void SwapTop(StackPtr stack) { 
-    if ()
-}
+
 
 // General funcs
 void PrintMenu(StackPtr arr) {
@@ -150,37 +228,13 @@ void Menu(StackPtr arr) {
 int main() {
     srand(time(0));
     system("chcp 1251");
-    system("cls");
-
-    Stack s1 = CreateStack(10);
-    Stack s2 = s1;
-    s1.size = 8;
-    printf("\n %d \n", (&s1.ptr[0]));
-    printf("\n %d \n", (&s2.ptr[0]));
-    system("pause");
-    return 0;
+    system("cls"); 
 
 
-    int out = 1;
-    Stack stack;
-    while (out != 0) {
-        stack = CreateStack(0);
-        if (stack.size == -1) {
-            MALLOC_ERROR;
-            printf("\n  Try again? 1/0: ");
-            while (ScanInt(&out) == 0 || (out != 0 && out != 1)) {
-                system("cls");
-                printf("\n  Try again? 1/0: ");
-            };
-            system("pause");
-            // ? DeleteArray(&arr);
-            return;
-        }
-        else {
-            Menu(&stack);
-            break;
-        };
-    }
+    Stack stack = CreateStack();
+    Menu(&stack);
+
+
     system("pause");
     DeleteStack(&stack);
     return 0;
