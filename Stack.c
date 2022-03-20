@@ -145,7 +145,44 @@ int PopBack(StackPtr stack, StackPtr primaryStack) {
     if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
     return SUCCESS;
 }
-
+int SwapEdges(StackPtr stack, StackPtr primaryStack) {
+    DeleteStack(primaryStack);
+    primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR;
+    int errorCode;
+    Stack tempStack = CreateStack();
+    // {1,2,3,4} => {2,3,4}
+    int topElem = Pop(stack);
+    if (topElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
+    if (topElem == REALLOC_ERROR) return REALLOC_ERROR; 
+    // {2,3,4} => {2,3}
+    int bottomElem = PopBack(stack);
+    if (bottomElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
+    if (bottomElem == REALLOC_ERROR) return REALLOC_ERROR;
+    // {} => {4}
+    errorCode = Push(tempStack, bottomElem); 
+    if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+    // {4} => {3,2,4}
+    int peakElem = Pop(stack);
+    while (peakElem > 0) {
+        errorCode = Push(tempStack, peakElem);
+        if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+        peakElem = Pop(stack);
+    }
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    // {3,2,4} => {1,3,2,4}
+    errorCode = Push(tempStack, topElem); 
+    if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+    // {1,3,2,4} => {4,2,3,1}
+    peakElem = Pop(tempStack);
+    while (peakElem > 0) {
+        errorCode = Push(stack, peakElem);
+        if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+        peakElem = Pop(tempStack);
+    }
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    return SUCCESS; 
+}
 
 // General funcs
 void PrintMenu() {
