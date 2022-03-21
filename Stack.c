@@ -43,8 +43,7 @@ int ReallocStack(StackPtr stack, int newSize) {
     if (tmp_ptr != NULL || newSize == 0) {
         stack->ptr = tmp_ptr;
         stack->size = newSize;
-    }
-    else stack->size = -1;
+    } 
     return (tmp_ptr != NULL || stack->size == 0);
 }
 void DeleteStack(StackPtr stack) {
@@ -53,44 +52,55 @@ void DeleteStack(StackPtr stack) {
 }
 
 // это база
+Stack GetPrimaryState(StackPtr stack) {
+    Stack currStack = CreateStack();
+    if (!ReallocStack(&currStack, stack->size))
+        return *stack;
+    for (int i = 0; i < stack->size; i++)
+        currStack.ptr[i] = stack->ptr[i];
+    return currStack;
+}
 int Pop(StackPtr stack) {
     if (stack->size == 0) return EMPTY_SIZE_ERROR;
     int topElem = stack->ptr[0];
     for (int i = 0; i < stack->size - 1; i++)
         stack->ptr[i] = stack->ptr[i+1];
-    if (!ReallocStack(stack, stack->size - 1))
-        return REALLOC_ERROR; 
+    if (!ReallocStack(stack, stack->size - 1)) return REALLOC_ERROR;  
     return topElem;
 }
 int Push(StackPtr stack, int newValue) { 
     if (!ReallocStack(stack, stack->size + 1)) return REALLOC_ERROR;
-    for (int i = 0; i < stack->size - 1; i++)
-        stack->ptr[i + 1] = stack->ptr[i];
-    stack->ptr[0] = newValue;
+    // {54321-1}{543211}{543221}{543321}{544321}{554321}
+    for (int i = stack->size-1; i > 0; i--)
+        stack->ptr[i] = stack->ptr[i-1];
+    stack->ptr[0] = newValue;   
     return stack->ptr[0];
 }
-StackPtr GetPrimaryState(StackPtr stack) {
-    Stack currStack = CreateStack();
-    if (!ReallocStack(&currStack, stack->size))
-        return stack;
-    for (int i = 0; i < stack->size; i++)
-        currStack.ptr[i] = stack->ptr[i];
-    return &currStack;
-}
-int WasError(int errorCode, StackPtr stack, StackPtr primaryState) {
-    if (errorCode == SUCCESS) return 0;
+int WasError(int errorCode, StackPtr stack, StackPtr primaryStack) {
+    if (errorCode >= SUCCESS) return 0;
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
-    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
+    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG; 
+    
+    printf("%d, %d, %d", errorCode, stack->size, primaryStack->size);
+
     DeleteStack(stack);
-    stack = primaryState;
+    *stack = CreateStack();
+    stack->size = primaryStack->size;
+    for (int i = 0; i < stack->size; i++)
+        stack->ptr[i] = primaryStack->ptr[i];
+    
+
+    *primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR; 
+
     return 1;
 }
 
 
-// not BASE
+ // not BASE
 int FreeStack(StackPtr stack, StackPtr primaryStack) {
     DeleteStack(primaryStack);
-    primaryStack = GetPrimaryState(stack);
+    *primaryStack = GetPrimaryState(stack);
     if (primaryStack == stack) return REALLOC_ERROR;
     printf("\n  {");
     int peakElem = Pop(stack);
@@ -106,7 +116,7 @@ int FreeStack(StackPtr stack, StackPtr primaryStack) {
 }
 int SwapTop(StackPtr stack, StackPtr primaryStack) {
     DeleteStack(primaryStack);
-    primaryStack = GetPrimaryState(stack);
+    *primaryStack = GetPrimaryState(stack);
     if (primaryStack == stack) return REALLOC_ERROR;
 
     int a = Pop(stack);
@@ -124,7 +134,7 @@ int SwapTop(StackPtr stack, StackPtr primaryStack) {
 }
 int PopBack(StackPtr stack, StackPtr primaryStack) {
     DeleteStack(primaryStack);
-    primaryStack = GetPrimaryState(stack);
+    *primaryStack = GetPrimaryState(stack);
     if (primaryStack == stack) return REALLOC_ERROR;
 
     Stack tempStack = CreateStack();
@@ -135,20 +145,21 @@ int PopBack(StackPtr stack, StackPtr primaryStack) {
         peakElem = Pop(stack);
     }
     if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
-    if (Pop(&tempStack) == REALLOC_ERROR) return REALLOC_ERROR;
+    int deletedElem = Pop(&tempStack);
+    if (deletedElem == REALLOC_ERROR) return REALLOC_ERROR;
 
     peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         Push(stack, peakElem);
         peakElem = Pop(&tempStack);
     }
-    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
-    return SUCCESS;
+    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR; 
+    return deletedElem;
 }
-int SwapEdges(StackPtr stack, StackPtr primaryStack) {
+int SwapEdges(StackPtr stack, StackPtr primaryStack) { 
     DeleteStack(primaryStack);
-    primaryStack = GetPrimaryState(stack);
-    if (primaryStack == stack) return REALLOC_ERROR;
+    *primaryStack = GetPrimaryState(stack);
+    if (primaryStack == stack) return REALLOC_ERROR; 
     int errorCode;
     Stack tempStack = CreateStack();
     // {1,2,3,4} => {2,3,4}
@@ -156,32 +167,41 @@ int SwapEdges(StackPtr stack, StackPtr primaryStack) {
     if (topElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
     if (topElem == REALLOC_ERROR) return REALLOC_ERROR; 
     // {2,3,4} => {2,3}
-    int bottomElem = PopBack(stack);
+    Stack tmpStackForArgument = CreateStack();
+    int bottomElem = PopBack(stack, &tmpStackForArgument);
     if (bottomElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
     if (bottomElem == REALLOC_ERROR) return REALLOC_ERROR;
     // {} => {4}
-    errorCode = Push(tempStack, bottomElem); 
+    errorCode = Push(&tempStack, bottomElem); 
     if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
     // {4} => {3,2,4}
     int peakElem = Pop(stack);
     while (peakElem > 0) {
-        errorCode = Push(tempStack, peakElem);
+        errorCode = Push(&tempStack, peakElem);
         if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
         peakElem = Pop(stack);
     }
     if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
     // {3,2,4} => {1,3,2,4}
-    errorCode = Push(tempStack, topElem); 
+    errorCode = Push(&tempStack, topElem); 
     if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
     // {1,3,2,4} => {4,2,3,1}
-    peakElem = Pop(tempStack);
+    peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         errorCode = Push(stack, peakElem);
         if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
-        peakElem = Pop(tempStack);
+        peakElem = Pop(&tempStack);
     }
     if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    printf("\n  %d, %d", topElem, bottomElem);
     return SUCCESS; 
+}
+void PrintStack(StackPtr stack) {
+    printf("  \n{ ");
+    for (int i = 0; i < stack->size; i++) {
+        printf("%d, ", stack->ptr[i]);
+    }
+    printf(" } ");
 }
 
 // General funcs
@@ -211,42 +231,50 @@ void Menu(StackPtr stack, StackPtr primaryStack) {
         PrintMenu();
         char option;
         scanf("%s", &option);
-        system("cls");
+        system("cls"); 
         switch (option) {
             case('1'): {
                 int errorCode = FreeStack(stack, primaryStack);
-                WasError(errorCode, stack, primaryStack);
-                continue;
+                if (!WasError(errorCode, stack, primaryStack))
+                    printf("\n  Stack was free successfully!\n");
+                break;
             }
             case('2'): {
-                int errorCode = Push(stack, 2);
-                WasError(errorCode, stack, primaryStack);
-                continue;
+                int errorCode = Push(stack, abs(rand() % 100));
+                WasError(errorCode, stack, primaryStack); 
+                break;
             }
             case('3'): { 
                 int peakElem = Pop(stack);
-                if (WasError(peakElem, stack, primaryStack)) continue;
-                printf("%d", peakElem);
-                continue;
+                if (peakElem == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
+                printf("\n  %d", peakElem);
+                break;
             }
             case('4'): {
-                printf("\n"); 
-                continue;
+                int errorCode = SwapTop(stack, primaryStack);
+                WasError(errorCode, stack, primaryStack);
+                break;
+            } 
+            case('5'): {
+                int deletedElem = PopBack(stack, primaryStack);
+                WasError(deletedElem, stack, primaryStack);
+                printf("\n  %d", deletedElem);
+                break;
             }
-            case('5'): { 
-                continue;
-            }
-            case('6'): { 
-                continue;
+            case('6'): {
+                int errorCode = SwapEdges(stack, primaryStack);
+                WasError(errorCode, stack, primaryStack);
+                break;
             }
             case('7'): {
                 // exit
                 return;
             }
             default: {
-                continue;
+                break;
             }
         }
+        PrintStack(stack);
         StepBack();
     }
 }
@@ -265,6 +293,7 @@ int main() {
 
     system("pause");
     DeleteStack(&stack);
+    DeleteStack(&primaryStack);
     return 0;
 }
 
