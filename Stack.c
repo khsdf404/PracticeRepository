@@ -33,7 +33,7 @@ int  ScanInt(int* valuePtr) {
 
 Stack CreateStack() {
     Stack thisStack;
-    int* dynamicArr = (int*)calloc(0, sizeof(int));
+    int* dynamicArr = (int*)calloc(1, sizeof(int));
     thisStack.ptr = dynamicArr;
     thisStack.size = 0;
     return thisStack;
@@ -49,6 +49,7 @@ int ReallocStack(StackPtr stack, int newSize) {
 void DeleteStack(StackPtr stack) {
     stack->size = 0;
     free(stack->ptr);
+    stack = NULL;
 }
 
 // это база
@@ -62,19 +63,14 @@ Stack GetPrimaryState(StackPtr stack) {
 }
 int Pop(StackPtr stack) {
     if (stack->size == 0) return EMPTY_SIZE_ERROR;
-    int topElem = stack->ptr[0];
-    for (int i = 0; i < stack->size - 1; i++)
-        stack->ptr[i] = stack->ptr[i+1];
+    int topElem = stack->ptr[stack->size - 1];
     if (!ReallocStack(stack, stack->size - 1)) return REALLOC_ERROR;  
     return topElem;
 }
 int Push(StackPtr stack, int newValue) { 
     if (!ReallocStack(stack, stack->size + 1)) return REALLOC_ERROR;
-    // {54321-1}{543211}{543221}{543321}{544321}{554321}
-    for (int i = stack->size-1; i > 0; i--)
-        stack->ptr[i] = stack->ptr[i-1];
-    stack->ptr[0] = newValue;   
-    return stack->ptr[0];
+    stack->ptr[stack->size-1] = newValue;
+    return stack->ptr[stack->size - 1];
 }
 int WasError(int errorCode, StackPtr stack, StackPtr primaryStack) {
     if (errorCode >= SUCCESS) return 0;
@@ -119,17 +115,15 @@ int SwapTop(StackPtr stack, StackPtr primaryStack) {
     *primaryStack = GetPrimaryState(stack);
     if (primaryStack == stack) return REALLOC_ERROR;
 
-    int a = Pop(stack);
-    if (a == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
-    if (a == REALLOC_ERROR) return REALLOC_ERROR;
+    int first = Pop(stack);
+    if (first < 0) return first;
         
-    int b = Pop(stack);
-    if (b == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
-    if (b == REALLOC_ERROR) return REALLOC_ERROR;
+    int second = Pop(stack);
+    if (second < 0) return second;
   
-    if (Push(stack, a) == REALLOC_ERROR) return REALLOC_ERROR;
-    if (Push(stack, b) == REALLOC_ERROR) return REALLOC_ERROR;
-    printf("%d, %d", a, b);
+    if (Push(stack, first) == REALLOC_ERROR) return REALLOC_ERROR;
+    if (Push(stack, second) == REALLOC_ERROR) return REALLOC_ERROR;
+    printf("%d, %d", first, second);
     return SUCCESS;
 }
 int PopBack(StackPtr stack, StackPtr primaryStack) {
@@ -137,23 +131,35 @@ int PopBack(StackPtr stack, StackPtr primaryStack) {
     *primaryStack = GetPrimaryState(stack);
     if (primaryStack == stack) return REALLOC_ERROR;
 
-    Stack tempStack = CreateStack();
     int peakElem = Pop(stack);
-    if (peakElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
+    if (peakElem < 0) return peakElem;
+    Stack tempStack = CreateStack();
     while (peakElem > 0) {
-        Push(&tempStack, peakElem);
+        if (Push(&tempStack, peakElem) == REALLOC_ERROR) {
+            peakElem = REALLOC_ERROR;
+            break;
+        }
         peakElem = Pop(stack);
     }
-    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (peakElem == REALLOC_ERROR) {
+        DeleteStack(tempStack);
+        return REALLOC_ERROR;
+    }
     int deletedElem = Pop(&tempStack);
-    if (deletedElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (deletedElem == REALLOC_ERROR) {
+        DeleteStack(tempStack);
+        return REALLOC_ERROR;
+    }
 
     peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         Push(stack, peakElem);
         peakElem = Pop(&tempStack);
     }
-    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR; 
+    if (peakElem == REALLOC_ERROR) {
+        DeleteStack(tempStack);
+        return REALLOC_ERROR;
+    }
     return deletedElem;
 }
 int SwapEdges(StackPtr stack, StackPtr primaryStack) { 
@@ -164,43 +170,39 @@ int SwapEdges(StackPtr stack, StackPtr primaryStack) {
     Stack tempStack = CreateStack();
     // {1,2,3,4} => {2,3,4}
     int topElem = Pop(stack);
-    if (topElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
-    if (topElem == REALLOC_ERROR) return REALLOC_ERROR; 
-    // {2,3,4} => {2,3}
-    Stack tmpStackForArgument = CreateStack();
-    int bottomElem = PopBack(stack, &tmpStackForArgument);
-    if (bottomElem == EMPTY_SIZE_ERROR) return EMPTY_SIZE_ERROR;
-    if (bottomElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (topElem < 0) { DeleteStack(&tempStack); return topElem; } 
+    // {2,3,4} => {2,3} 
+    int bottomElem = PopBack(stack, &tempStack);
+    if (bottomElem < 0) { DeleteStack(&tempStack); return bottomElem; }
     // {} => {4}
     errorCode = Push(&tempStack, bottomElem); 
-    if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+    if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
     // {4} => {3,2,4}
     int peakElem = Pop(stack);
     while (peakElem > 0) {
         errorCode = Push(&tempStack, peakElem);
-        if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+        if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
         peakElem = Pop(stack);
     }
-    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (peakElem == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
     // {3,2,4} => {1,3,2,4}
     errorCode = Push(&tempStack, topElem); 
-    if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+    if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
     // {1,3,2,4} => {4,2,3,1}
     peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         errorCode = Push(stack, peakElem);
-        if (errorCode == REALLOC_ERROR) return REALLOC_ERROR;
+        if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
         peakElem = Pop(&tempStack);
     }
-    if (peakElem == REALLOC_ERROR) return REALLOC_ERROR;
+    if (peakElem == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
     printf("\n  %d, %d", topElem, bottomElem);
     return SUCCESS; 
 }
 void PrintStack(StackPtr stack) {
     printf("  \n{ ");
-    for (int i = 0; i < stack->size; i++) {
-        printf("%d, ", stack->ptr[i]);
-    }
+    for (int i = stack->size-1; i >= 0; i--)
+        printf("%d, ", stack->ptr[i]); 
     printf(" } ");
 }
 
