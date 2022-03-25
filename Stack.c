@@ -142,12 +142,12 @@ int PopBack(StackPtr stack, StackPtr primaryStack) {
         peakElem = Pop(stack);
     }
     if (peakElem == REALLOC_ERROR) {
-        DeleteStack(tempStack);
+        DeleteStack(&tempStack);
         return REALLOC_ERROR;
     }
     int deletedElem = Pop(&tempStack);
     if (deletedElem == REALLOC_ERROR) {
-        DeleteStack(tempStack);
+        DeleteStack(&tempStack);
         return REALLOC_ERROR;
     }
 
@@ -157,7 +157,7 @@ int PopBack(StackPtr stack, StackPtr primaryStack) {
         peakElem = Pop(&tempStack);
     }
     if (peakElem == REALLOC_ERROR) {
-        DeleteStack(tempStack);
+        DeleteStack(&tempStack);
         return REALLOC_ERROR;
     }
     return deletedElem;
