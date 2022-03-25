@@ -52,6 +52,11 @@ int ReallocQueue(QueuePtr queue, int newSize) {
     }
     return (tmp_ptr != NULL || queue->size == 0);
 }
+int ReallocChecker() {
+    // 340000001
+    // s=2; [4]-[1] = 3; 3*2=6;
+
+}
 void DeleteQueue(QueuePtr queue) {
     queue->size = 0;
     free(queue->ptr);
