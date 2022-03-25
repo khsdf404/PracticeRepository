@@ -68,7 +68,11 @@ Queue GetPrimaryState(QueuePtr queue) {
     return currQueue;
 }
 int Pop(QueuePtr queue) {
-     
+    // CheckRealloc(queue->size, queue->head);
+    // check 1 elem case
+    int head = queue->head;
+    queue->ptr[head] = 0;
+    head = (head + 1) % size;
 }
 int Push(QueuePtr queue, int newValue) { 
     // CheckRealloc(queue->size, queue->head);
