@@ -33,8 +33,7 @@ int  ScanInt(int* valuePtr) {
 
 Stack CreateStack() {
     Stack thisStack;
-    int* dynamicArr = (int*)calloc(1, sizeof(int));
-    thisStack.ptr = dynamicArr;
+    thisStack.ptr = NULL;
     thisStack.size = 0;
     return thisStack;
 }
@@ -73,7 +72,7 @@ int Push(StackPtr stack, int newValue) {
     return stack->ptr[stack->size - 1];
 }
 int WasError(int errorCode, StackPtr stack, StackPtr primaryStack) {
-    if (errorCode >= SUCCESS) return 0;
+    if (errorCode >= SUCCESS) return 0; 
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
     if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG; 
     
@@ -172,30 +171,59 @@ int SwapEdges(StackPtr stack, StackPtr primaryStack) {
     int topElem = Pop(stack);
     if (topElem < 0) { DeleteStack(&tempStack); return topElem; } 
     // {2,3,4} => {2,3} 
-    int bottomElem = PopBack(stack, &tempStack);
-    if (bottomElem < 0) { DeleteStack(&tempStack); return bottomElem; }
+    Stack tempStack2 = CreateStack();
+    int bottomElem = PopBack(stack, &tempStack2);
+    if (bottomElem < 0) { 
+        DeleteStack(&tempStack); 
+        DeleteStack(&tempStack2);
+        return bottomElem; 
+    }
     // {} => {4}
     errorCode = Push(&tempStack, bottomElem); 
-    if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+    if (errorCode == REALLOC_ERROR) { 
+        DeleteStack(&tempStack); 
+        DeleteStack(&tempStack2);
+        return REALLOC_ERROR; 
+    }
     // {4} => {3,2,4}
     int peakElem = Pop(stack);
     while (peakElem > 0) {
         errorCode = Push(&tempStack, peakElem);
-        if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+        if (errorCode == REALLOC_ERROR) { 
+            DeleteStack(&tempStack);
+            DeleteStack(&tempStack2);
+            return REALLOC_ERROR; 
+        }
         peakElem = Pop(stack);
     }
-    if (peakElem == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+    if (peakElem == REALLOC_ERROR) { 
+        DeleteStack(&tempStack);
+        DeleteStack(&tempStack2);
+        return REALLOC_ERROR; 
+    }
     // {3,2,4} => {1,3,2,4}
     errorCode = Push(&tempStack, topElem); 
-    if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+    if (errorCode == REALLOC_ERROR) { 
+        DeleteStack(&tempStack);
+        DeleteStack(&tempStack2);
+        return REALLOC_ERROR; 
+    }
     // {1,3,2,4} => {4,2,3,1}
     peakElem = Pop(&tempStack);
     while (peakElem > 0) {
         errorCode = Push(stack, peakElem);
-        if (errorCode == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+        if (errorCode == REALLOC_ERROR) { 
+            DeleteStack(&tempStack);
+            DeleteStack(&tempStack2);
+            return REALLOC_ERROR; 
+        }
         peakElem = Pop(&tempStack);
     }
-    if (peakElem == REALLOC_ERROR) { DeleteStack(&tempStack); return REALLOC_ERROR; }
+    if (peakElem == REALLOC_ERROR) { 
+        DeleteStack(&tempStack);
+        DeleteStack(&tempStack2);
+        return REALLOC_ERROR; 
+    }
     printf("\n  %d, %d", topElem, bottomElem);
     return SUCCESS; 
 }
