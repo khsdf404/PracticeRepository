@@ -11,7 +11,7 @@
 #define EMPTY_SIZE_MSG printf("\n  Error: not enough size for it!\n")
 #define REALLOC_ERROR -2
 #define REALLOC_MSG printf("\n  Error: realloc was finished with NULL ptr!\n")
-
+#define SIZE_MULT 2
 
 typedef int* arr_p;
 typedef struct Array {
@@ -61,25 +61,31 @@ void DeleteQueue(QueuePtr queue) {
 // это база
 Queue GetPrimaryState(QueuePtr queue) {
     Queue currQueue = CreateQueue();
-    if (!ReallocQueue(&currQueue, queue->size))
+    if (!ReallocQueue(&currQueue, queue->size* SIZE_MULT))
         return *queue;
-    for (int i = 0; i < queue->size; i++)
-        currQueue.ptr[i] = queue->ptr[i];
+    int head = queue->head;
+    int size = queue->size;
+    for (int i = 0; i < size; i++)
+        currQueue.ptr[(head+i)%size] = queue->ptr[(head + i) % size];
+    currQueue.head = head;
+    currQueue.size = size;
     return currQueue;
 }
 int Pop(QueuePtr queue) {
     // CheckRealloc(queue->size, queue->head);
     // check 1 elem case
     int head = queue->head;
+    int headVal = queue->ptr[head];
     queue->ptr[head] = 0;
-    head = (head + 1) % size;
+    head = (head + 1) % queue->size;
+    return headVal;
 }
 int Push(QueuePtr queue, int newValue) { 
     // CheckRealloc(queue->size, queue->head);
     int head = queue->head;
     int size = queue->size;
     queue->ptr[(head + size + 1) % head] = newValue;
-    return SUCCESS;
+    return newValue;
 }
 /*
 int WasError(int errorCode, StackPtr stack, StackPtr primaryStack) {
