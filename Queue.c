@@ -7,7 +7,7 @@
 #define DARKGREY 8
 #define SUCCESS 1
 #define EMPTY_SIZE_ERROR -1 
-#define EMPTY_SIZE_MSG printf("\n  Error: not enough size for it!\n")
+#define EMPTY_SIZE_MSG printf("\n  Error: not enough size for that  !\n")
 #define REALLOC_ERROR -2
 #define REALLOC_MSG printf("\n  Error: realloc was finished with NULL ptr!\n")
 #define SIZE_MULT 2
@@ -28,17 +28,15 @@ int  ScanInt(int* valuePtr) {
     if (scanCount) return 1;
     return getc(stdin) != '\n';
 }
-
-
-// Dynamic's array funcs
+ 
 
 Queue CreateQueue() {
     Queue thisQueue;
     int* dynamicArr = (int*)calloc(10, sizeof(int));
     thisQueue.ptr = dynamicArr;
     thisQueue.size = 10;
-    thisQueue.head = 0;
-    thisQueue.tale = 0;
+    thisQueue.head = -1;
+    thisQueue.tale = -1;
     return thisQueue;
 }
 int ReallocQueue(QueuePtr queue, int newSize) {
@@ -49,10 +47,22 @@ int ReallocQueue(QueuePtr queue, int newSize) {
     }
     return (tmp_ptr != NULL || queue->size == 0);
 }
-int ReallocChecker() {
-    // 340000001
-    // s=2; [4]-[1] = 3; 3*2=6;
-
+int ReallocChecker(QueuePtr queue) {
+    int head = queue->head;
+    int tale = queue->tale;
+    int size = queue->size;
+    // {tale, _, head, zalupa, _, _, _, _}
+    if ((tale + 1) % size == head) {
+        if (tale > head) 
+            return ReallocQueue(queue, size * 2);  
+        else {
+            if (!ReallocQueue(queue, size * 2)) return REALLOC_ERROR;
+            for (int i = 0; (head + i + size) < size * 2; i++) {
+                queue->ptr[head + i] = queue->ptr[head + i + size];
+            }
+        }
+    }
+    return SUCCESS;
 }
 void DeleteQueue(QueuePtr queue) { 
     free(queue->ptr);
@@ -74,8 +84,7 @@ Queue GetPrimaryState(QueuePtr queue) {
     currQueue.tale = queue->tale;
     return currQueue;
 }
-int Pop(QueuePtr queue) {
-    // CheckRealloc(queue->size, queue->head); 
+int Pop(QueuePtr queue) { 
     if (queue->head == -1) {
         return EMPTY_SIZE_ERROR;
     }
@@ -91,33 +100,18 @@ int Pop(QueuePtr queue) {
     return headVal; 
 }
 int Push(QueuePtr queue, int newValue) { 
-    // CheckRealloc(queue->size, queue->head);
-    // check tale + 1 == head case 
+    ReallocChecker(queue);
     int size = queue->size;
     int tale = queue->tale;
     queue->ptr[(tale + 1) % size] = abs(newValue);
     queue->tale = (tale + 1) % size;
+    if (queue->head == -1) queue->head = queue->tale;
     return abs(newValue);
 }
-int WasError(int errorCode, QueuePtr queue, QueuePtr primQueue) {
+void WasError(int errorCode, QueuePtr queue) {
     if (errorCode >= SUCCESS) return 0;
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
-    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
-
-    printf("%d, %d, %d", errorCode, queue->size, primQueue->size);
-
-    DeleteQueue(queue);
-    *queue = CreateQueue();
-    queue->size = primQueue->size; // realloc
-    queue->head = primQueue->head;
-    queue->tale = primQueue->tale;
-    for (int i = 0; i < stack->size; i++)
-        queue->ptr[i] = primQueue->ptr[i];
-
-
-    *primQueue = GetPrimaryState(queue);
-    if (primQueue == queue) return REALLOC_ERROR;
-
+    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;  
     return 1;
 } 
 
@@ -125,42 +119,65 @@ int SplitZeros(QueuePtr queue) {
     Queue copyQueue = GetPrimaryState(queue); // check errors
     Queue tempQueue = CreateQueue(); // check errors
 
-    int elem = Pop(copyQueue); // check errors
+    int elem = Pop(&copyQueue); // check errors
     while (elem > 0) { // while (Pop != ERROR)
-        Push(tempQueue, elem); // check errors
-        Push(tempQueue, 0); // check errors
-        elem = Pop(copyQueue); // check errors 
+        Push(&tempQueue, elem); // check errors
+        Push(&tempQueue, 0); // check errors
+        elem = Pop(&copyQueue); // check errors 
     }
     DeleteQueue(queue);
+    DeleteQueue(&tempQueue);
     queue = &copyQueue; 
+    return SUCCESS;
 }
 int PopBack(QueuePtr queue) {
-    Queue copyQueue = GetPrimaryState(queue); // check errors
-    Queue tempQueue = GetPrimaryState(queue); // check errors
-    Queue tempQueue2;
-    // {1,2,3,4,_,_}
-     
-
-     // 1 elem
-    tempQueue2 = GetPrimaryState(copyQueue);
-    Pop(tempQueue2);
-    if (Pop(tempQueue2) < 0) return -3;
-    // default
-    int elem = Pop(copyQueue);
-    while (1) { // while (Pop != ERROR)  
-        Push(tempQueue, elem); // check errors 
-        elem = Pop(copyQueue); // check errors  
-        
-        tempQueue2 = GetPrimaryState(copyQueue);
-        Pop(tempQueue2);
-        if (Pop(tempQueue2) < 0) break;  
+    Queue tempQueue2 = GetPrimaryState(queue); // check errors
+    int maybeTale = Pop(&tempQueue2);
+    // 0 elem 
+    if (maybeTale < 0) {
+        DeleteQueue(&tempQueue2);
+        return -3; // need to think of error code here
     }
-    DeleteQueue(tempQueue2);
-
-
-
+    // 1 elem
+    if (Pop(&tempQueue2) < 0) {
+        *queue = CreateQueue(); // check errors
+        DeleteQueue(&tempQueue2);
+        return maybeTale;
+    } 
+    // default
+    Queue copyQueue = GetPrimaryState(queue); // check errors
+    Queue tempQueue = GetPrimaryState(queue); // check errors 
+    int elem = Pop(&copyQueue);
+    while (1) { // while (Pop != ERROR)   
+        Push(&tempQueue, elem); // check errors 
+        tempQueue2 = GetPrimaryState(&copyQueue); // check errors
+        maybeTale = Pop(&tempQueue2); 
+        if (Pop(&tempQueue2) < 0) break;   
+        elem = Pop(&copyQueue); // check errors  
+    } 
+    DeleteQueue(queue);
+    DeleteQueue(&copyQueue);
+    DeleteQueue(&tempQueue2);
+    queue = &tempQueue;
+    return maybeTale;
 }
+int SwapEdges(QueuePtr queue) {
+    Queue copyQueue = GetPrimaryState(queue); // check errors
+    Queue tempQueue = CreateQueue(); // check errors
+    int tale = PopBack(&copyQueue); // check errors
+    int head = Pop(&copyQueue);// check errors
+    
+    Push(&tempQueue, tale);
+    int elem = Pop(&copyQueue); // check errors
+    while (elem > 0) {
+        Push(&tempQueue, elem); // check errors
+        Push(&tempQueue, 0); // check errors
+        elem = Pop(&copyQueue); // check errors 
+    }
+    Push(&tempQueue, head); // check errors 
 
+    return SUCCESS;
+}
 
 
 // General funcs
@@ -180,7 +197,7 @@ void StepBack() {
     getch();
 }
 // Menu
-void Menu(QueuePtr queue, QueuePtr primQueue) {
+void Menu(QueuePtr queue) {
     while (1) {
         system("cls");
         PrintMenu();
@@ -226,13 +243,11 @@ int main() {
 
 
     Queue queue = CreateQueue();
-    Queue primaryQueue = CreateQueue();
-    Menu(&queue, &primaryQueue);
+    Menu(&queue);
 
 
     system("pause");
     DeleteQueue(&queue);
-    DeleteQueue(&primaryQueue);
     return 0;
 }
 
