@@ -20,14 +20,6 @@ typedef struct Array {
     int tale;
 } Queue;
 typedef Queue* QueuePtr;
-
-
-// FoolProof get int func
-int  ScanInt(int* valuePtr) {
-    int scanCount = scanf("%d", valuePtr);
-    if (scanCount) return 1;
-    return getc(stdin) != '\n';
-}
  
 
 Queue CreateQueue() {
@@ -72,7 +64,7 @@ void DeleteQueue(QueuePtr queue) {
     queue = NULL;
 }
 
-// это база
+// base funcs
 Queue GetPrimaryState(QueuePtr queue) {
     Queue currQueue = CreateQueue();
     if (!ReallocQueue(&currQueue, queue->size))
@@ -106,13 +98,14 @@ int Push(QueuePtr queue, int newValue) {
     if (queue->head == -1) queue->head = queue->tale;
     return abs(newValue);
 }
-void WasError(int errorCode, QueuePtr queue) {
-    if (errorCode >= SUCCESS) return 0;
+int WasError(int errorCode) {
+    if (errorCode >= 0) return 0;
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
     if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;  
     return 1;
 } 
 
+// addit funcs
 int SplitZeros(QueuePtr queue) {
     Queue copyQueue = GetPrimaryState(queue);
         if (&copyQueue == queue) return REALLOC_ERROR;
@@ -180,9 +173,21 @@ int SwapEdges(QueuePtr queue) {
         elem = Pop(&copyQueue);
     }
     if (Push(&tempQueue, head) < 0) return REALLOC_ERROR; 
+    return head;
+}
+int PrintQueue(QueuePtr queue) {
+    Queue copyQueue = GetPrimaryState(queue);
+        if (&copyQueue == queue) return REALLOC_ERROR;
+    printf("\n  Queue: { ");
+    int elem = Pop(&copyQueue); 
+    while (elem > 0) {
+        printf("%d", elem);
+        elem = Pop(&copyQueue);
+        if (elem > 0) printf(", ");
+    }
+    printf(" };");
     return SUCCESS;
 }
-
 
 // General funcs
 void PrintMenu() {
@@ -203,6 +208,10 @@ void StepBack() {
 // Menu
 void Menu(QueuePtr queue) {
     while (1) {
+        if (queue->size == 0) {
+            Queue tempQueue = CreateQueue();
+            queue = &tempQueue; 
+        }
         system("cls");
         PrintMenu();
         char option;
@@ -210,21 +219,47 @@ void Menu(QueuePtr queue) {
         system("cls");
         switch (option) {
             case('1'): {
+                WasError(PrintQueue(queue));
+                DeleteQueue(queue); 
                 break;
             }
-            case('2'): {
+            case('2'): { 
+                WasError(Push(queue, rand() % 100));
+                WasError(PrintQueue(queue));
                 break;
             }
-            case('3'): {
+            case('3'): {  
+                WasError(PrintQueue(queue));
+                int errorCode = Pop(queue);
+                if (!WasError(errorCode)) printf("\n  Deleted elem: %d", errorCode);
+                else break;
+                WasError(PrintQueue(queue));
                 break;
             }
             case('4'): {
+                int errorCode = SplitZeros(queue);
+                if (!WasError(errorCode)) 
+                    WasError(PrintQueue(queue)); 
                 break;
             }
             case('5'): {
+                int errorCode = PopBack(queue);
+                if (!WasError(errorCode))
+                    printf("\n  Deleted tale: %d", errorCode); 
                 break;
             }
             case('6'): {
+                int tale = SwapEdges(queue);
+                Queue copyQueue = GetPrimaryState(queue);
+                if (&copyQueue == queue) {
+                    WasError(REALLOC_ERROR);
+                    break;
+                }
+                int head = Pop(&copyQueue);
+                WasError(PrintQueue(queue));
+                if (!WasError(tale) && !WasError(head))
+                    printf("\n  Switched elems: %d and %d", tale, head);
+                WasError(PrintQueue(queue));
                 break;
             }
             case('7'): {
