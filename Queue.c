@@ -43,10 +43,8 @@ int ReallocChecker(QueuePtr queue) {
     int head = queue->head;
     int tale = queue->tale;
     int size = queue->size;
-    
-    // {tale, _, head, zalupa, _, _, _, _}
-    if ((tale + 1) % size == head) {
-        printf("#");
+     
+    if ((tale + 1) % size == head) { 
         if (tale > head) 
             return ReallocQueue(queue, size * 2);  
         else {
