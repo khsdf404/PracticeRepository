@@ -114,7 +114,7 @@ int SplitZeros(QueuePtr queue) {
     Queue tempQueue = CreateQueue(); // if (&tempQueue == queue) return REALLOC_ERROR;
      
     int elem = Pop(&copyQueue);  
-    while (elem > 0) {  
+    while (elem >= 0) {  
         if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR;  
         if (Push(&tempQueue,    0) < 0) return REALLOC_ERROR;
         elem = Pop(&copyQueue);  
@@ -169,14 +169,14 @@ int SwapEdges(QueuePtr queue) {
     
     if (Push(&tempQueue, tale) < 0) return REALLOC_ERROR;
     int elem = Pop(&copyQueue); // check errors
-    while (elem > 0) {
+    while (elem >= 0) {
         if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR; 
         elem = Pop(&copyQueue);
     }
     if (Push(&tempQueue, head) < 0) return REALLOC_ERROR; 
 
     *queue = tempQueue;
-    return head;
+    return tale;
 }
 int PrintQueue(QueuePtr queue) { 
     Queue copyQueue = GetPrimaryState(queue);
@@ -254,17 +254,18 @@ void Menu(QueuePtr queue) {
                 WasError(PrintQueue(queue));
                 break;
             }
-            case('6'): {
-                int tale = SwapEdges(queue);
+            case('6'): { 
                 Queue copyQueue = GetPrimaryState(queue);
                 if (&copyQueue == queue) {
                     WasError(REALLOC_ERROR);
                     break;
-                }
-                int head = Pop(&copyQueue);
+                } 
                 WasError(PrintQueue(queue));
-                if (!WasError(tale) && !WasError(head))
-                    printf("\n  Switched elems: %d and %d", tale, head);
+                int tale = SwapEdges(queue);
+                int head = Pop(&copyQueue); 
+                if (!WasError(tale) && !WasError(head)) 
+                    printf("\n  Switched elems: %d and %d", head, tale);
+                else break;
                 WasError(PrintQueue(queue));
                 break;
             }
