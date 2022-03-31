@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <time.h>
-#include <windows.h>
 
 #define WHITE 15 
 #define DARKGREY 8
@@ -35,14 +34,12 @@ int  ScanInt(int* valuePtr) {
 
 Queue CreateQueue() {
     Queue thisQueue;
-    int* dynamicArr = (int*)calloc(1, sizeof(int));
+    int* dynamicArr = (int*)calloc(10, sizeof(int));
     thisQueue.ptr = dynamicArr;
-    thisQueue.size = 0;
+    thisQueue.size = 10;
     thisQueue.head = 0;
-    thisQueue.tale = -1;
+    thisQueue.tale = 0;
     return thisQueue;
-    //67012345 
-    // (head + size + 1)%head == head => tale bites head
 }
 int ReallocQueue(QueuePtr queue, int newSize) {
     int* tmp_ptr = (int*)realloc(queue->ptr, newSize * sizeof(int));
@@ -57,77 +54,124 @@ int ReallocChecker() {
     // s=2; [4]-[1] = 3; 3*2=6;
 
 }
-void DeleteQueue(QueuePtr queue) {
-    queue->size = 0;
+void DeleteQueue(QueuePtr queue) { 
     free(queue->ptr);
+    queue->size = 0;
+    queue->head = 0;
+    queue->tale = 0; 
     queue = NULL;
 }
 
 // это база
 Queue GetPrimaryState(QueuePtr queue) {
     Queue currQueue = CreateQueue();
-    if (!ReallocQueue(&currQueue, queue->size* SIZE_MULT))
-        return *queue;
-    int head = queue->head;
-    int size = queue->size;
-    for (int i = 0; i < size; i++)
-        currQueue.ptr[(head+i)%size] = queue->ptr[(head + i) % size];
-    currQueue.head = head;
-    currQueue.size = size;
+    if (!ReallocQueue(&currQueue, queue->size))
+        return *queue; 
+    for (int i = 0; i < queue->size; i++)
+        currQueue.ptr[i] = queue->ptr[i];
+    currQueue.size = queue->size;
+    currQueue.head = queue->head;
+    currQueue.tale = queue->tale;
     return currQueue;
 }
 int Pop(QueuePtr queue) {
-    // CheckRealloc(queue->size, queue->head);
-    // check 1 elem case
+    // CheckRealloc(queue->size, queue->head); 
+    if (queue->head == -1) {
+        return EMPTY_SIZE_ERROR;
+    }
     int head = queue->head;
     int headVal = queue->ptr[head];
-    queue->ptr[head] = 0;
-    head = (head + 1) % queue->size;
-    return headVal;
+    queue->ptr[head] = -1;
+    if (queue->head == queue->tale) {
+        queue->head = -1;
+        queue->tale = -1;
+        return headVal;
+    }
+    queue->head = (head + 1) % queue->size; 
+    return headVal; 
 }
 int Push(QueuePtr queue, int newValue) { 
     // CheckRealloc(queue->size, queue->head);
-    int head = queue->head;
+    // check tale + 1 == head case 
     int size = queue->size;
-    queue->ptr[(head + size + 1) % head] = newValue;
-    return newValue;
+    int tale = queue->tale;
+    queue->ptr[(tale + 1) % size] = abs(newValue);
+    queue->tale = (tale + 1) % size;
+    return abs(newValue);
 }
-/*
-int WasError(int errorCode, StackPtr stack, StackPtr primaryStack) {
+int WasError(int errorCode, QueuePtr queue, QueuePtr primQueue) {
     if (errorCode >= SUCCESS) return 0;
     if (errorCode == REALLOC_ERROR) REALLOC_MSG;
     if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
 
-    printf("%d, %d, %d", errorCode, stack->size, primaryStack->size);
+    printf("%d, %d, %d", errorCode, queue->size, primQueue->size);
 
-    DeleteStack(stack);
-    *stack = CreateStack();
-    stack->size = primaryStack->size;
+    DeleteQueue(queue);
+    *queue = CreateQueue();
+    queue->size = primQueue->size; // realloc
+    queue->head = primQueue->head;
+    queue->tale = primQueue->tale;
     for (int i = 0; i < stack->size; i++)
-        stack->ptr[i] = primaryStack->ptr[i];
+        queue->ptr[i] = primQueue->ptr[i];
 
 
-    *primaryStack = GetPrimaryState(stack);
-    if (primaryStack == stack) return REALLOC_ERROR;
+    *primQueue = GetPrimaryState(queue);
+    if (primQueue == queue) return REALLOC_ERROR;
 
     return 1;
+} 
+
+int SplitZeros(QueuePtr queue) {
+    Queue copyQueue = GetPrimaryState(queue); // check errors
+    Queue tempQueue = CreateQueue(); // check errors
+
+    int elem = Pop(copyQueue); // check errors
+    while (elem > 0) { // while (Pop != ERROR)
+        Push(tempQueue, elem); // check errors
+        Push(tempQueue, 0); // check errors
+        elem = Pop(copyQueue); // check errors 
+    }
+    DeleteQueue(queue);
+    queue = &copyQueue; 
 }
-*/
+int PopBack(QueuePtr queue) {
+    Queue copyQueue = GetPrimaryState(queue); // check errors
+    Queue tempQueue = GetPrimaryState(queue); // check errors
+    Queue tempQueue2;
+    // {1,2,3,4,_,_}
+     
+
+     // 1 elem
+    tempQueue2 = GetPrimaryState(copyQueue);
+    Pop(tempQueue2);
+    if (Pop(tempQueue2) < 0) return -3;
+    // default
+    int elem = Pop(copyQueue);
+    while (1) { // while (Pop != ERROR)  
+        Push(tempQueue, elem); // check errors 
+        elem = Pop(copyQueue); // check errors  
+        
+        tempQueue2 = GetPrimaryState(copyQueue);
+        Pop(tempQueue2);
+        if (Pop(tempQueue2) < 0) break;  
+    }
+    DeleteQueue(tempQueue2);
+
+
+
+}
+
 
 
 // General funcs
 void PrintMenu() {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
     printf("\n");
     printf("  1. Очистить очередь.\n");
     printf("  2. Добавить элемент в очередь.\n");
     printf("  3. Удалить элемент очереди.\n");
-    // if (arr->size == 0) SetConsoleTextAttribute(hConsole, DARKGREY);
-    printf("  4. Поменять местами два верхних элемента.\n");
-    printf("  5. Удалить нижний элемент стека.\n");
-    printf("  6. Поменять местами верхний и нижний элементы стека.\n");
-    // if (arr->size == 0) SetConsoleTextAttribute(hConsole, WHITE);
+    printf("  4. После каждого элемента поставить 0.\n");
+    printf("  5. Удалить хвост.\n");
+    printf("  6. Поменять местами голову и хвост.\n");
     printf("  7. Выйти.\n");
     printf("\n  ");
 }
@@ -136,7 +180,7 @@ void StepBack() {
     getch();
 }
 // Menu
-void Menu(QueuePtr stack, QueuePtr primaryStack) {
+void Menu(QueuePtr queue, QueuePtr primQueue) {
     while (1) {
         system("cls");
         PrintMenu();
@@ -144,33 +188,32 @@ void Menu(QueuePtr stack, QueuePtr primaryStack) {
         scanf("%s", &option);
         system("cls");
         switch (option) {
-        case('1'): {
-            break;
-        }
-        case('2'): {
-            break;
-        }
-        case('3'): {
-            break;
-        }
-        case('4'): {
-            break;
-        }
-        case('5'): {
-            break;
-        }
-        case('6'): {
-            break;
-        }
-        case('7'): {
-            // exit
-            return;
-        }
-        default: {
-            break;
-        }
-        }
-       // PrintStack(stack);
+            case('1'): {
+                break;
+            }
+            case('2'): {
+                break;
+            }
+            case('3'): {
+                break;
+            }
+            case('4'): {
+                break;
+            }
+            case('5'): {
+                break;
+            }
+            case('6'): {
+                break;
+            }
+            case('7'): {
+                // exit
+                return;
+            }
+            default: {
+                break;
+            }
+        } 
         StepBack();
     }
 }
