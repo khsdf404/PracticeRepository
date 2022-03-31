@@ -43,8 +43,10 @@ int ReallocChecker(QueuePtr queue) {
     int head = queue->head;
     int tale = queue->tale;
     int size = queue->size;
+    
     // {tale, _, head, zalupa, _, _, _, _}
     if ((tale + 1) % size == head) {
+        printf("#");
         if (tale > head) 
             return ReallocQueue(queue, size * 2);  
         else {
@@ -80,7 +82,7 @@ int Pop(QueuePtr queue) {
     if (queue->head == -1) return EMPTY_SIZE_ERROR; 
     int head = queue->head;
     int headVal = queue->ptr[head];
-    queue->ptr[head] = -1;
+    queue->ptr[head] = 0;
     if (queue->head == queue->tale) {
         queue->head = -1;
         queue->tale = -1;
@@ -114,16 +116,16 @@ int SplitZeros(QueuePtr queue) {
     int elem = Pop(&copyQueue);  
     while (elem > 0) {  
         if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR;  
-        if (Push(&tempQueue, 0) < 0)  return REALLOC_ERROR;
+        if (Push(&tempQueue,    0) < 0) return REALLOC_ERROR;
         elem = Pop(&copyQueue);  
     }
     DeleteQueue(queue);
-    DeleteQueue(&tempQueue);
-    queue = &copyQueue; 
+    DeleteQueue(&copyQueue);
+    *queue = tempQueue; 
     return SUCCESS;
 }
 int PopBack(QueuePtr queue) {
-    Queue tempQueue2 = GetPrimaryState(queue); // check errors
+    Queue tempQueue2 = GetPrimaryState(queue);
         if (&tempQueue2 == queue) return REALLOC_ERROR;
     int maybeTale = Pop(&tempQueue2); 
     // 0 elem 
@@ -133,28 +135,27 @@ int PopBack(QueuePtr queue) {
     }
     // 1 elem
     if (Pop(&tempQueue2) < 0) {
-        DeleteQueue(queue);
-        queue = &tempQueue2;  
+        Pop(queue);
         return maybeTale;
     } 
     // default
     Queue copyQueue = GetPrimaryState(queue);
         if (&copyQueue == queue) return REALLOC_ERROR;
-    Queue tempQueue = GetPrimaryState(queue); 
-        if (&tempQueue == queue) return REALLOC_ERROR;
+    Queue tempQueue = CreateQueue(); // if (&tempQueue == queue) return REALLOC_ERROR;  
+
     int elem = Pop(&copyQueue); 
     while (1) { 
         if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR; 
         tempQueue2 = GetPrimaryState(&copyQueue); 
-            if (&tempQueue2 == queue) return REALLOC_ERROR;
+            if (&tempQueue2 == &copyQueue) return REALLOC_ERROR;
         maybeTale = Pop(&tempQueue2); 
         if (Pop(&tempQueue2) < 0) break;   
         elem = Pop(&copyQueue); 
-    } 
+    }  
     DeleteQueue(queue);
     DeleteQueue(&copyQueue);
-    DeleteQueue(&tempQueue2);
-    queue = &tempQueue;
+    DeleteQueue(&tempQueue2);  
+    *queue = tempQueue; 
     return maybeTale;
 }
 int SwapEdges(QueuePtr queue) {
@@ -173,17 +174,19 @@ int SwapEdges(QueuePtr queue) {
         elem = Pop(&copyQueue);
     }
     if (Push(&tempQueue, head) < 0) return REALLOC_ERROR; 
+
+    *queue = tempQueue;
     return head;
 }
-int PrintQueue(QueuePtr queue) {
+int PrintQueue(QueuePtr queue) { 
     Queue copyQueue = GetPrimaryState(queue);
         if (&copyQueue == queue) return REALLOC_ERROR;
     printf("\n  Queue: { ");
     int elem = Pop(&copyQueue); 
-    while (elem > 0) {
+    while (elem >= 0) {
         printf("%d", elem);
         elem = Pop(&copyQueue);
-        if (elem > 0) printf(", ");
+        if (elem >= 0) printf(", ");
     }
     printf(" };");
     return SUCCESS;
@@ -237,15 +240,18 @@ void Menu(QueuePtr queue) {
                 break;
             }
             case('4'): {
+                WasError(PrintQueue(queue));
                 int errorCode = SplitZeros(queue);
                 if (!WasError(errorCode)) 
-                    WasError(PrintQueue(queue)); 
+                    WasError(PrintQueue(queue));  
                 break;
             }
             case('5'): {
+                WasError(PrintQueue(queue));
                 int errorCode = PopBack(queue);
-                if (!WasError(errorCode))
-                    printf("\n  Deleted tale: %d", errorCode); 
+                if (!WasError(errorCode)) printf("\n  Deleted tale: %d", errorCode);
+                else break; 
+                WasError(PrintQueue(queue));
                 break;
             }
             case('6'): {
