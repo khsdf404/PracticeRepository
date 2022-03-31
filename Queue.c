@@ -32,7 +32,7 @@ int  ScanInt(int* valuePtr) {
 
 Queue CreateQueue() {
     Queue thisQueue;
-    int* dynamicArr = (int*)calloc(10, sizeof(int));
+    int* dynamicArr = (int*)calloc(10, sizeof(int)); // idk if this could return an error 
     thisQueue.ptr = dynamicArr;
     thisQueue.size = 10;
     thisQueue.head = -1;
@@ -85,9 +85,7 @@ Queue GetPrimaryState(QueuePtr queue) {
     return currQueue;
 }
 int Pop(QueuePtr queue) { 
-    if (queue->head == -1) {
-        return EMPTY_SIZE_ERROR;
-    }
+    if (queue->head == -1) return EMPTY_SIZE_ERROR; 
     int head = queue->head;
     int headVal = queue->ptr[head];
     queue->ptr[head] = -1;
@@ -100,7 +98,7 @@ int Pop(QueuePtr queue) {
     return headVal; 
 }
 int Push(QueuePtr queue, int newValue) { 
-    ReallocChecker(queue);
+    if (!ReallocChecker(queue)) return REALLOC_ERROR;
     int size = queue->size;
     int tale = queue->tale;
     queue->ptr[(tale + 1) % size] = abs(newValue);
@@ -116,14 +114,15 @@ void WasError(int errorCode, QueuePtr queue) {
 } 
 
 int SplitZeros(QueuePtr queue) {
-    Queue copyQueue = GetPrimaryState(queue); // check errors
-    Queue tempQueue = CreateQueue(); // check errors
-
-    int elem = Pop(&copyQueue); // check errors
-    while (elem > 0) { // while (Pop != ERROR)
-        Push(&tempQueue, elem); // check errors
-        Push(&tempQueue, 0); // check errors
-        elem = Pop(&copyQueue); // check errors 
+    Queue copyQueue = GetPrimaryState(queue);
+        if (&copyQueue == queue) return REALLOC_ERROR;
+    Queue tempQueue = CreateQueue(); // if (&tempQueue == queue) return REALLOC_ERROR;
+     
+    int elem = Pop(&copyQueue);  
+    while (elem > 0) {  
+        if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR;  
+        if (Push(&tempQueue, 0) < 0)  return REALLOC_ERROR;
+        elem = Pop(&copyQueue);  
     }
     DeleteQueue(queue);
     DeleteQueue(&tempQueue);
@@ -132,28 +131,32 @@ int SplitZeros(QueuePtr queue) {
 }
 int PopBack(QueuePtr queue) {
     Queue tempQueue2 = GetPrimaryState(queue); // check errors
-    int maybeTale = Pop(&tempQueue2);
+        if (&tempQueue2 == queue) return REALLOC_ERROR;
+    int maybeTale = Pop(&tempQueue2); 
     // 0 elem 
     if (maybeTale < 0) {
         DeleteQueue(&tempQueue2);
-        return -3; // need to think of error code here
+        return EMPTY_SIZE_ERROR;  
     }
     // 1 elem
     if (Pop(&tempQueue2) < 0) {
-        *queue = CreateQueue(); // check errors
-        DeleteQueue(&tempQueue2);
+        DeleteQueue(queue);
+        queue = &tempQueue2;  
         return maybeTale;
     } 
     // default
-    Queue copyQueue = GetPrimaryState(queue); // check errors
-    Queue tempQueue = GetPrimaryState(queue); // check errors 
-    int elem = Pop(&copyQueue);
-    while (1) { // while (Pop != ERROR)   
-        Push(&tempQueue, elem); // check errors 
-        tempQueue2 = GetPrimaryState(&copyQueue); // check errors
+    Queue copyQueue = GetPrimaryState(queue);
+        if (&copyQueue == queue) return REALLOC_ERROR;
+    Queue tempQueue = GetPrimaryState(queue); 
+        if (&tempQueue == queue) return REALLOC_ERROR;
+    int elem = Pop(&copyQueue); 
+    while (1) { 
+        if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR; 
+        tempQueue2 = GetPrimaryState(&copyQueue); 
+            if (&tempQueue2 == queue) return REALLOC_ERROR;
         maybeTale = Pop(&tempQueue2); 
         if (Pop(&tempQueue2) < 0) break;   
-        elem = Pop(&copyQueue); // check errors  
+        elem = Pop(&copyQueue); 
     } 
     DeleteQueue(queue);
     DeleteQueue(&copyQueue);
@@ -162,20 +165,21 @@ int PopBack(QueuePtr queue) {
     return maybeTale;
 }
 int SwapEdges(QueuePtr queue) {
-    Queue copyQueue = GetPrimaryState(queue); // check errors
-    Queue tempQueue = CreateQueue(); // check errors
-    int tale = PopBack(&copyQueue); // check errors
-    int head = Pop(&copyQueue);// check errors
+    Queue copyQueue = GetPrimaryState(queue); 
+        if (&copyQueue == queue) return REALLOC_ERROR;
+    Queue tempQueue = CreateQueue(); // if (&tempQueue == queue) return REALLOC_ERROR;
+    int tale = PopBack(&copyQueue); 
+        if (tale < 0) return tale;
+    int head = Pop(&copyQueue); 
+        if (head < 0) return head;
     
-    Push(&tempQueue, tale);
+    if (Push(&tempQueue, tale) < 0) return REALLOC_ERROR;
     int elem = Pop(&copyQueue); // check errors
     while (elem > 0) {
-        Push(&tempQueue, elem); // check errors
-        Push(&tempQueue, 0); // check errors
-        elem = Pop(&copyQueue); // check errors 
+        if (Push(&tempQueue, elem) < 0) return REALLOC_ERROR; 
+        elem = Pop(&copyQueue);
     }
-    Push(&tempQueue, head); // check errors 
-
+    if (Push(&tempQueue, head) < 0) return REALLOC_ERROR; 
     return SUCCESS;
 }
 
