@@ -12,7 +12,7 @@ typedef struct Array {
 } List;
 typedef List* ListPtr;
 
-int  ScanInt(int* valuePtr) {
+int ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
     if (getc(stdin) != '\n') return 0;
@@ -26,99 +26,125 @@ ListPtr CreateElem(int val) {
     thisList->next = NULL;
     return thisList;
 } 
-void DeleteQueue(ListPtr list) {
-    //...
+void DeleteList(ListPtr head) { 
+    while (head != NULL) {
+        free(*head);
+        head = head->next;
+    }
 }
  
-void Print(ListPtr list) {
-    ListPtr temp = list;
+void Print(ListPtr head) {
+    ListPtr elem = head;
     printf("\n  Список: { ");
-    while (temp->next != NULL) {
-        printf("%d, ", temp->val);
-        temp = temp->next;
+    while (elem->next != NULL) {
+        printf("%d, ", elem->val);
+        elem = elem->next;
     }
-    printf("%d };", temp->val);
+    printf("%d };", elem->val);
 }
-void PrintReverse(ListPtr list) {
+void PrintReverse(ListPtr head) {
     printf("\n  Реверснутый список: { ");
-    ListPtr tList = list;
-    while (tList->next != NULL)
-        tList = tList->next;
+    ListPtr elem = head;
+    while (elem->next != NULL)
+        elem = elem->next;
     // finds last elem and print it;
-    while (tList != list) {
-        printf("%d, ", tList->val);
-        ListPtr tList_2 = list;
-        while (tList_2->next != tList)
-            tList_2 = tList_2->next;
-        tList = tList_2;
+    while (elem != head) {
+        printf("%d, ", elem->val);
+        ListPtr tElem = head;
+        while (tElem->next != elem)
+            tElem = tElem->next;
+        elem = tElem;
     }
-    printf("%d", list->val);
+    printf("%d", head->val);
     printf(" }; \n");
 }
 
-void PushBack(ListPtr list) { 
-    if (list->val == -1) {
-        *list = *CreateElem(rand() % 100);
-        Print(list);
+void PushBack(ListPtr head) { 
+    if (head->val == -1) {
+        *head = *CreateElem(rand() % 100);
+        Print(head);
         return;
     }
     ListPtr newElem = CreateElem(rand() % 100);
-    ListPtr tList = list; 
-    while (tList->next != NULL)
-        tList = tList->next;
-    tList->next = newElem;
-    Print(list);
+    ListPtr elem = head;
+    while (elem->next != NULL)
+        elem = elem->next;
+    elem->next = newElem;
+    Print(head);
 }
-int DeleteElement(ListPtr list, ListPtr elem) {
-    if (elem == list) {  
-        if (list->next == NULL) {
-            list->val = -1;
+int DeleteElement(ListPtr head, ListPtr deletingElem) {
+    if (deletingElem == head) {
+        if (head->next == NULL) {
+            head->val = -1;
             return 0;
         }
-        *list = *list->next; 
+        *head = *head->next;
         return 2;
     }
-    ListPtr tList = list;
-    while (tList->next != elem) {
-        tList = tList->next;
-        if (tList == NULL) return 1;
+    ListPtr elem = head;
+    while (elem->next != deletingElem) {
+        elem = elem->next;
+        if (elem == NULL) return 1;
     }
-    (tList->next) = (tList->next)->next;
+    (elem->next) = (elem->next)->next;
     return 0;
 }
-void DeleteByValue(ListPtr list) {
+void DeleteByValue(ListPtr head) {
     int value = -1;
-    Print(list);
+    Print(head);
     printf("\n  Введите значение, по которому будут удалены элементы [0, 99]: ");
     while (ScanInt(&value) < 0 || value > 100 || value < 0) {
         system("cls");
         printf("\n  Введите корректное значение [0, 99]: ");
     }
     int errorCode = 0;
-    ListPtr tList = list;
-    while (tList != NULL) {
-        if (tList->val == value)
-            errorCode = DeleteElement(list, tList);
-        tList = tList->next;
+    ListPtr elem = head;
+    while (elem != NULL) {
+        if (elem->val == value)
+            errorCode = DeleteElement(head, elem);
+        elem = elem->next;
     }  
     if (errorCode = 2) {
         printf("Список: { }"); 
         return;
     }
-    Print(list);
+    Print(head);
 }
-void FindMinMax(ListPtr list) {
-    Print(list);
-    int min = list->val; int max = list->val;
-    ListPtr tList = list;
-    while (tList != NULL) {
-        if (tList->val > max) max = tList->val;
-        if (tList->val < min) min = tList->val;
-        tList = tList->next;
+void FindMinMax(ListPtr head) {
+    Print(head);
+    int min = head->val; int max = head->val;
+    ListPtr elem = head;
+    while (elem != NULL) {
+        if (elem->val > max) max = elem->val;
+        if (elem->val < min) min = elem->val;
+        elem = elem->next;
     }
 
-    printf("\n  Max: %d, Min: %d", max, min);
+    printf("\n  Min: %d, Max: %d", min, max);
 }
+void SwapMinMax(ListPtr head) {
+    Print(head);
+    int min = head->val; int max = head->val;
+    ListPtr minPtr = head; ListPtr maxPtr = head;
+    ListPtr elem = head;
+    while (elem != NULL) {
+        if (elem->val > max) {
+            max = elem->val;
+            maxPtr = elem;
+        }
+        if (elem->val < min) {
+            min = elem->val;
+            minPtr = elem;
+        }
+        elem = elem->next;
+    }
+    int tVal = minPtr->val;
+    minPtr->val = maxPtr->val;
+    maxPtr->val = tVal;
+    printf("\n  Min: %d, Max: %d", min, max);
+    Print(head);
+}
+
 
 // General funcs
 void PrintMenu(int isEmpty) {
@@ -141,10 +167,10 @@ void StepBack() {
     getch();
 }
 
-void Menu(ListPtr list) {
+void Menu(ListPtr head) {
     while (1) {
         int isEmpty = 0;
-        if (list->val == -1) isEmpty = 1;
+        if (head->val == -1) isEmpty = 1;
         system("cls");
         PrintMenu(isEmpty);
         char option;
@@ -152,31 +178,32 @@ void Menu(ListPtr list) {
         system("cls");
         switch (option) {
             case('1'): { 
-                PushBack(list);
+                PushBack(head);
                 break;
             }
             case('2'): { 
                 if (isEmpty) continue;
-                DeleteByValue(list);
+                DeleteByValue(head);
                 break;
             }
             case('3'): { 
                 if (isEmpty) continue;
-                FindMinMax(list);
+                FindMinMax(head);
                 break;
             }
             case('4'): { 
                 if (isEmpty) continue;
+                SwapMinMax(head);
                 break;
             }
             case('5'): { 
                 if (isEmpty) continue;
-                Print(list);
+                Print(head);
                 break;
             }
             case('6'): { 
                 if (isEmpty) continue;
-                PrintReverse(list);
+                PrintReverse(head);
                 break;
             }
             case('7'): {
@@ -198,12 +225,11 @@ int main() {
     system("cls");
 
      
-    ListPtr list = CreateElem(-1); 
-
-    Menu(list);
+    ListPtr head = CreateElem(-1);  
+    Menu(head);
 
 
     system("pause");
-    DeleteQueue(list);
+    DeleteList(head);
     return 0;
 }
