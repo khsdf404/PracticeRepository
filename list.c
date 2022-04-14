@@ -30,36 +30,12 @@ void Print(ListPtr list) {
     }
     printf("%d };", temp->val);
 }
-void PushBack(ListPtr list) {
-    ListPtr temp13 = list;
-    printf("\n  Список: { ");
-    while (temp13->next != NULL) {
-        printf("%d, ", temp13->next);
-        temp13 = temp13->next;
-    }
-    printf("%d };", temp13->next);
-
+void PushBack(ListPtr list) { 
     ListPtr newElem = CreateElem(rand() % 100);
-    ListPtr temp = list;
-    printf("\n%d\n", (list->next)->next);
-    printf("\n\n%d\n", temp);
-    printf("%d\n", list);
-    printf("%d\n", temp->next);
-    printf("%d\n", list->next);
+    ListPtr temp = list; 
     while (temp->next != NULL)
-        temp = temp->next;
-    printf("%d\n", temp);
-    printf("%d\n", list);
-    printf("%d\n", list->next);
-    printf("%d\n", temp->next);
-    temp->next = newElem;
-    printf("%d\n", list->next);
-    printf("\n%d\n", (list->next)->next);
-    printf("\n%d\n", newElem);
-
-    printf("\n%d\n", newElem->next == NULL);
-    Print(list);
-
+        temp = temp->next; 
+    temp->next = newElem; 
     Print(list);
 }
 
