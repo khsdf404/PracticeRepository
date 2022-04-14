@@ -41,19 +41,21 @@ void Print(ListPtr list) {
 }
 void PrintReverse(ListPtr list) {
     printf("\n  Реверснутый список: { ");
-    ListPtr temp = list;
-    while (temp->next != NULL)
-        temp = temp->next; 
-    while (temp != list) {
-        printf("%d, ", temp->val);
-        ListPtr temp2 = list;
-        while (temp2->next != temp)
-            temp2 = temp2->next; 
-        temp = temp2; 
+    ListPtr tList = list;
+    while (tList->next != NULL)
+        tList = tList->next;
+    // finds last elem and print it;
+    while (tList != list) {
+        printf("%d, ", tList->val);
+        ListPtr tList_2 = list;
+        while (tList_2->next != tList)
+            tList_2 = tList_2->next;
+        tList = tList_2;
     }
     printf("%d", list->val);
     printf(" }; \n");
 }
+
 void PushBack(ListPtr list) { 
     if (list->val == -1) {
         *list = *CreateElem(rand() % 100);
@@ -61,10 +63,10 @@ void PushBack(ListPtr list) {
         return;
     }
     ListPtr newElem = CreateElem(rand() % 100);
-    ListPtr temp = list; 
-    while (temp->next != NULL)
-        temp = temp->next; 
-    temp->next = newElem; 
+    ListPtr tList = list; 
+    while (tList->next != NULL)
+        tList = tList->next;
+    tList->next = newElem;
     Print(list);
 }
 int DeleteElement(ListPtr list, ListPtr elem) {
@@ -76,12 +78,12 @@ int DeleteElement(ListPtr list, ListPtr elem) {
         *list = *list->next; 
         return 2;
     }
-    ListPtr temp = list;  
-    while (temp->next != elem) { 
-        temp = temp->next; 
-        if (temp == NULL) return 1;
+    ListPtr tList = list;
+    while (tList->next != elem) {
+        tList = tList->next;
+        if (tList == NULL) return 1;
     }
-    (temp->next) = (temp->next)->next; 
+    (tList->next) = (tList->next)->next;
     return 0;
 }
 void DeleteByValue(ListPtr list) {
@@ -93,11 +95,11 @@ void DeleteByValue(ListPtr list) {
         printf("\n  Введите корректное значение [0, 99]: ");
     }
     int errorCode = 0;
-    ListPtr temp = list;
-    while (temp != NULL) { 
-        if (temp->val == value)
-            errorCode = DeleteElement(list, temp);
-        temp = temp->next;
+    ListPtr tList = list;
+    while (tList != NULL) {
+        if (tList->val == value)
+            errorCode = DeleteElement(list, tList);
+        tList = tList->next;
     }  
     if (errorCode = 2) {
         printf("Список: { }"); 
@@ -105,7 +107,18 @@ void DeleteByValue(ListPtr list) {
     }
     Print(list);
 }
+void FindMinMax(ListPtr list) {
+    Print(list);
+    int min = list->val; int max = list->val;
+    ListPtr tList = list;
+    while (tList != NULL) {
+        if (tList->val > max) max = tList->val;
+        if (tList->val < min) min = tList->val;
+        tList = tList->next;
+    }
 
+    printf("\n  Max: %d, Min: %d", max, min);
+}
 
 // General funcs
 void PrintMenu(int isEmpty) {
@@ -127,7 +140,7 @@ void StepBack() {
     printf("\n  Для продолжения нажмите любую клавишу...");
     getch();
 }
-// Menu
+
 void Menu(ListPtr list) {
     while (1) {
         int isEmpty = 0;
@@ -149,6 +162,7 @@ void Menu(ListPtr list) {
             }
             case('3'): { 
                 if (isEmpty) continue;
+                FindMinMax(list);
                 break;
             }
             case('4'): { 
