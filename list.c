@@ -39,6 +39,21 @@ void Print(ListPtr list) {
     }
     printf("%d };", temp->val);
 }
+void PrintReverse(ListPtr list) {
+    printf("\n  Реверснутый список: { ");
+    ListPtr temp = list;
+    while (temp->next != NULL)
+        temp = temp->next; 
+    while (temp != list) {
+        printf("%d, ", temp->val);
+        ListPtr temp2 = list;
+        while (temp2->next != temp)
+            temp2 = temp2->next; 
+        temp = temp2; 
+    }
+    printf("%d", list->val);
+    printf(" }; \n");
+}
 void PushBack(ListPtr list) { 
     if (list->val == -1) {
         *list = *CreateElem(rand() % 100);
@@ -147,6 +162,7 @@ void Menu(ListPtr list) {
             }
             case('6'): { 
                 if (isEmpty) continue;
+                PrintReverse(list);
                 break;
             }
             case('7'): {
