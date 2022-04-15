@@ -91,10 +91,7 @@ void DeleteQueue(QueuePtr queue) {
 }
 
 
-
-
-
-Queue GetPrimaryState(QueuePtr queue) {
+Queue QueuePrimaryState(QueuePtr queue) {
     Queue currQueue = CreateQueue();
     if (!ReallocQueue(&currQueue, queue->size))
         return *queue;
@@ -105,7 +102,7 @@ Queue GetPrimaryState(QueuePtr queue) {
     currQueue.tale = queue->tale;
     return currQueue;
 }
-TreeElem Pop(QueuePtr queue) {
+TreeElem PopQueue(QueuePtr queue) {
     if (queue->head == -1) return NULL;
     int head = queue->head;
     TreeElem headVal = queue->ptr[head];
@@ -118,7 +115,7 @@ TreeElem Pop(QueuePtr queue) {
     queue->head = (head + 1) % queue->size;
     return headVal;
 }
-TreeElem Push(QueuePtr queue, TreeElem newElem) {
+TreeElem PushQueue(QueuePtr queue, TreeElem newElem) {
     if (!ReallocChecker(queue)) return NULL;
     int size = queue->size;
     int tale = queue->tale;
@@ -127,20 +124,11 @@ TreeElem Push(QueuePtr queue, TreeElem newElem) {
     if (queue->head == -1) queue->head = queue->tale;
     return newElem;
 }
-int WasError(int errorCode) {
-    if (errorCode >= 0) return 0;
-    if (errorCode == REALLOC_ERROR) REALLOC_MSG;
-    if (errorCode == EMPTY_SIZE_ERROR) EMPTY_SIZE_MSG;
-    return 1;
-}
 int QueueEmpty(QueuePtr queue) {
-    Queue thisQueue = GetPrimaryState(queue);
-    if (Pop(&thisQueue) == NULL) return 1;
+    Queue thisQueue = QueuePrimaryState(queue);
+    if (PopQueue(&thisQueue) == NULL) return 1;
     return 0;
 }
-
-
-
 
 
 TreeElem CreateElem(int val) {
@@ -155,8 +143,7 @@ void DeleteList(ElemPtr head) {
 }
 
 
-
-void Print(ElemPtr head) {
+void PrintTree(ElemPtr head) {
     if (*head == NULL) return;
     //         10
     //        /  \
@@ -165,29 +152,26 @@ void Print(ElemPtr head) {
     //    1   8      15
     //         \     /
     //          9   14  
-    Queue ParentStack = CreateQueue();
-    Queue ChildStack = CreateQueue();
-    Push(&ParentStack, *head); 
-    //Pop(&ParentStack);
-    //printf("  %d  ", Pop(&ParentStack)->data);
-    while (0 || !QueueEmpty(&ParentStack)) {
-        TreeElem elem = Pop(&ParentStack);
+    Queue ParentQueue = CreateQueue();
+    Queue ChildQueue = CreateQueue();
+    PushQueue(&ParentQueue, *head);
+    while (!QueueEmpty(&ParentQueue)) {
+        printf("\n  ");
+        TreeElem elem = PopQueue(&ParentQueue);
         while (elem != NULL) {
             if (elem->left != NULL)
-                Push(&ChildStack, elem->left);
+                PushQueue(&ChildQueue, elem->left);
             if (elem->right != NULL)
-                Push(&ChildStack, elem->right);
-            printf(" | %d | ", elem->data);
-            elem = Pop(&ParentStack); 
+                PushQueue(&ChildQueue, elem->right);
+            printf(" | %d |  ", elem->data);
+            elem = PopQueue(&ParentQueue);
         }
-        ParentStack = GetPrimaryState(&ChildStack);
-        ChildStack = CreateQueue();
-        printf("\n");
+        ParentQueue = QueuePrimaryState(&ChildQueue);
+        ChildQueue = CreateQueue();
     } 
+    DeleteQueue(&ParentQueue);
+    DeleteQueue(&ChildQueue);
 }
-
-
-
 TreeElem GoLeft(ElemPtr elem) {
     if ((*elem)->left == NULL) return NULL;
     return (*elem)->left;
@@ -196,8 +180,8 @@ TreeElem GoRight(ElemPtr elem) {
     if ((*elem)->right == NULL) return NULL;
     return (*elem)->right;
 }
-void PushTree(ElemPtr head) {
-    int value = GetValue(); 
+void PushTree(ElemPtr head, int value, int need) {
+    if (need) value = GetValue(); 
     if (*head == NULL) {
         *head = CreateElem(value);
         return;
@@ -213,6 +197,50 @@ void PushTree(ElemPtr head) {
     if (tElem->data > value) tElem->left = CreateElem(value);
     if (tElem->data < value) tElem->right = CreateElem(value);
 }
+
+void DeleteByValue(ElemPtr head) {
+    PrintTree(head);
+    int value = GetValue();
+    int deleted = 0;
+    Queue ParentQueue = CreateQueue();
+    Queue ChildQueue = CreateQueue();
+    PushQueue(&ParentQueue, *head); 
+    while (!QueueEmpty(&ParentQueue)) {
+        TreeElem elem = PopQueue(&ParentQueue); 
+        if (elem->data == (*head)->data && elem->data == value) {
+            deleted = 1;
+            *head = NULL;
+            break;
+        }
+        while (elem != NULL) {
+            if (elem->left != NULL) {
+                if ((elem->left)->data == value) {
+                    deleted = 1;
+                    elem->left = NULL;
+                    break;
+                }
+                PushQueue(&ChildQueue, elem->left);
+            }
+            if (elem->right != NULL) {
+                if ((elem->right)->data == value) {
+                    deleted = 1;
+                    elem->right = NULL;
+                    break;
+                }
+                PushQueue(&ChildQueue, elem->right);
+            } 
+            elem = PopQueue(&ParentQueue);
+        }
+        if (deleted) break;
+        ParentQueue = QueuePrimaryState(&ChildQueue);
+        ChildQueue = CreateQueue(); 
+    }
+    DeleteQueue(&ParentQueue);
+    DeleteQueue(&ChildQueue);
+    if (deleted) PrintTree(head);
+    else printf("\n  There's no element with this value");
+}
+
 
 // General funcs
 void PrintMenu(int isEmpty) {
@@ -233,6 +261,10 @@ void StepBack() {
 }
 
 void Menu(ElemPtr head) {
+    int arr[] = {10, 6, 1, 8, 9, 13, 15, 14};
+    for (int i = 0; i < 8; i++) {
+        PushTree(head, arr[i], 0);
+    }
     while (1) {
         int isEmpty = 0;
         if (*head == NULL) isEmpty = 1;
@@ -243,17 +275,17 @@ void Menu(ElemPtr head) {
         system("cls");
         switch (option) {
             case('1'): {
-                PushTree(head);
+                PushTree(head, 0, 1);
                 break;
             }
             case('2'): {
                 if (isEmpty) continue;
-                // DeleteByValue(head);
+                    DeleteByValue(head);
                 break;
             }
             case('3'): {
                 if (isEmpty) continue;
-                Print(head);
+                PrintTree(head);
                 break;
             }
             case('4'): {
