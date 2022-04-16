@@ -3,16 +3,11 @@
 #include <malloc.h>
 #include <time.h>
 #include <windows.h>
-#include <locale.h>
 
 #define WHITE 15
 #define DARKGREY 8
 #define SUCCESS 1
-#define EMPTY_SIZE_ERROR -1 
-#define EMPTY_SIZE_MSG printf("\n  Error: not enough size for that  !\n")
-#define REALLOC_ERROR -2
-#define REALLOC_MSG printf("\n  Error: realloc was finished with NULL ptr!\n")
-#define SIZE_MULT 2
+#define REALLOC_ERROR -2 
 
 typedef struct Array {
     int data;
@@ -116,7 +111,7 @@ TreeElem PopQueue(QueuePtr queue) {
     return headVal;
 }
 TreeElem PushQueue(QueuePtr queue, TreeElem newElem) {
-    if (!ReallocChecker(queue)) return NULL;
+    if (ReallocChecker(queue) < 0) return NULL;
     int size = queue->size;
     int tale = queue->tale;
     queue->ptr[(tale + 1) % size] = newElem;
@@ -154,16 +149,16 @@ void PrintTree(ElemPtr head) {
     //          9   14  
     Queue ParentQueue = CreateQueue();
     Queue ChildQueue = CreateQueue();
-    PushQueue(&ParentQueue, *head);
+    PushQueue(&ParentQueue, *head); 
+    printf("\n  ");
     while (!QueueEmpty(&ParentQueue)) {
-        printf("\n  ");
         TreeElem elem = PopQueue(&ParentQueue);
         while (elem != NULL) {
             if (elem->left != NULL)
-                PushQueue(&ChildQueue, elem->left);
+                PushQueue(&ChildQueue, elem->left); 
             if (elem->right != NULL)
-                PushQueue(&ChildQueue, elem->right);
-            printf(" | %d |  ", elem->data);
+                PushQueue(&ChildQueue, elem->right); 
+            printf("%d, ", elem->data);
             elem = PopQueue(&ParentQueue);
         }
         ParentQueue = QueuePrimaryState(&ChildQueue);
