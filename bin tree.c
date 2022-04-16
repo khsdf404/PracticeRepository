@@ -25,8 +25,6 @@ typedef struct Array2 {
 } Queue;
 typedef Queue* QueuePtr;
 
-
-
 int ScanInt(int* valuePtr) {
     int scanCount = scanf("%d", valuePtr);
     if (scanCount) return 1;
@@ -133,10 +131,6 @@ TreeElem CreateElem(int val) {
     thisTree->right = NULL;
     return thisTree;
 }
-void DeleteList(ElemPtr head) {
-    //
-}
-
 
 void PrintTree(ElemPtr head) {
     if (*head == NULL) return;
@@ -256,10 +250,8 @@ void StepBack() {
 }
 
 void Menu(ElemPtr head) {
-    int arr[] = {10, 6, 1, 8, 9, 13, 15, 14};
-    for (int i = 0; i < 8; i++) {
-        PushTree(head, arr[i], 0);
-    }
+    // int arr[] = {10, 6, 1, 8, 9, 13, 15, 14};
+    // for (int i = 0; i < 8; i++) PushTree(head, arr[i], 0); 
     while (1) {
         int isEmpty = 0;
         if (*head == NULL) isEmpty = 1;
