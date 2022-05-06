@@ -141,6 +141,18 @@ void PrintTree(ElemPtr head) {
     //    1   8      15
     //         \     /
     //          9   14  
+
+
+    //         10
+    //        /  \
+    //      1    13
+    //       \      \ 
+    //        8      15
+    //         \     /
+    //          9   14
+
+
+
     Queue ParentQueue = CreateQueue();
     Queue ChildQueue = CreateQueue();
     PushQueue(&ParentQueue, *head); 
@@ -193,18 +205,22 @@ void DeleteByValue(ElemPtr head) {
     int deleted = 0;
     Queue ParentQueue = CreateQueue();
     Queue ChildQueue = CreateQueue();
-    PushQueue(&ParentQueue, *head); 
+    PushQueue(&ParentQueue, *head);
+    TreeElem deletedElem = NULL;
     while (!QueueEmpty(&ParentQueue)) {
-        TreeElem elem = PopQueue(&ParentQueue); 
+        TreeElem elem = PopQueue(&ParentQueue);
+        deletedElem = elem;
         if (elem->data == (*head)->data && elem->data == value) {
             deleted = 1;
-            *head = NULL;
+            deletedElem = *head;
+            // *head = NULL;
             break;
         }
         while (elem != NULL) {
             if (elem->left != NULL) {
                 if ((elem->left)->data == value) {
-                    deleted = 1;
+                    deleted = 1; 
+                    deletedElem = elem->left;
                     elem->left = NULL;
                     break;
                 }
@@ -212,7 +228,8 @@ void DeleteByValue(ElemPtr head) {
             }
             if (elem->right != NULL) {
                 if ((elem->right)->data == value) {
-                    deleted = 1;
+                    deleted = 1; 
+                    deletedElem = elem->right;
                     elem->right = NULL;
                     break;
                 }
@@ -226,6 +243,41 @@ void DeleteByValue(ElemPtr head) {
     }
     DeleteQueue(&ParentQueue);
     DeleteQueue(&ChildQueue);
+
+    printf("\n  %d\n", deletedElem->data);
+    // return;
+
+    if (deleted) {
+        ParentQueue = CreateQueue();
+        ChildQueue = CreateQueue();
+        Queue ValuesQueue = CreateQueue();
+        PushQueue(&ParentQueue, deletedElem);
+        while (!QueueEmpty(&ParentQueue)) {
+            TreeElem elem = PopQueue(&ParentQueue);
+            while (elem != NULL) {
+                if (elem->left != NULL)
+                    PushQueue(&ChildQueue, elem->left);
+                if (elem->right != NULL)
+                    PushQueue(&ChildQueue, elem->right);
+                PushQueue(&ValuesQueue, elem);
+                elem = PopQueue(&ParentQueue);
+            }
+            ParentQueue = QueuePrimaryState(&ChildQueue);
+            ChildQueue = CreateQueue();
+        }
+        DeleteQueue(&ParentQueue);
+        DeleteQueue(&ChildQueue);
+
+        while (!QueueEmpty(&ValuesQueue)) {
+            TreeElem elem = PopQueue(&ValuesQueue);
+            if (elem == deletedElem) continue;
+            PushTree(head, elem->data, 0);
+        }
+
+        DeleteQueue(&ValuesQueue);
+    }
+
+
     if (deleted) PrintTree(head);
     else printf("\n  There's no element with this value");
 }
@@ -250,8 +302,8 @@ void StepBack() {
 }
 
 void Menu(ElemPtr head) {
-    // int arr[] = {10, 6, 1, 8, 9, 13, 15, 14};
-    // for (int i = 0; i < 8; i++) PushTree(head, arr[i], 0); 
+    int arr[] = {10, 6, 1, 8, 9, 13, 15, 14};
+    for (int i = 0; i < 8; i++) PushTree(head, arr[i], 0); 
     while (1) {
         int isEmpty = 0;
         if (*head == NULL) isEmpty = 1;
